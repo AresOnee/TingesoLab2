@@ -15,11 +15,10 @@ services:
     environment:
       - SPRING_PROFILES_ACTIVE=native
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8888/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8888/actuator/health"]
       interval: 10s
       timeout: 5s
-      retries: 10
-      start_period: 40s
+      retries: 5
     networks:
       - toolrent-network
 
@@ -37,11 +36,10 @@ services:
     environment:
       - EUREKA_INSTANCE_HOSTNAME=eureka-server
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8761/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
       interval: 10s
       timeout: 5s
-      retries: 10
-      start_period: 40s
+      retries: 5
     networks:
       - toolrent-network
 
@@ -59,11 +57,10 @@ services:
     environment:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 10s
       timeout: 5s
-      retries: 10
-      start_period: 40s
+      retries: 5
     networks:
       - toolrent-network
 

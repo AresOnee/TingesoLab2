@@ -1,0 +1,8 @@
+com\toolrent\msreports\dto\LoanDTO.class
+com\toolrent\msreports\dto\ClientDTO.class
+com\toolrent\msreports\MsReportsApplication.class
+com\toolrent\msreports\dto\ToolRankingDTO.class
+com\toolrent\msreports\service\ReportService$1.class
+com\toolrent\msreports\controller\ReportController.class
+com\toolrent\msreports\service\ReportService.class
+com\toolrent\msreports\service\ReportService$2.class
