@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config
+  namespace: toolrent
+data:
+  # Eureka Server URL
+  EUREKA_SERVER_URL: "http://eureka-server:8761/eureka/"
+  
+  # Config Server URL
+  CONFIG_SERVER_URL: "http://config-server:8888"
+  
+  # API Gateway URL (interno)
+  API_GATEWAY_URL: "http://api-gateway:8080"

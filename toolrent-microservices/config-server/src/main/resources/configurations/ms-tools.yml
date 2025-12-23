@@ -1,0 +1,27 @@
+# Configuración para MS-TOOLS (Épica 1: Gestión de Herramientas)
+server:
+  port: 0  # Puerto dinámico asignado por el sistema
+
+spring:
+  application:
+    name: ms-tools
+  datasource:
+    url: jdbc:mysql://mysql-tools:3306/tools_db?createDatabaseIfNotExist=true&serverTimezone=UTC
+    username: root
+    password: rootpass
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${random.uuid}
