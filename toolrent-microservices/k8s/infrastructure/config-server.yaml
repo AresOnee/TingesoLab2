@@ -3,8 +3,6 @@ kind: Deployment
 metadata:
   name: config-server
   namespace: toolrent
-  labels:
-    app: config-server
 spec:
   replicas: 1
   selector:
@@ -17,17 +15,13 @@ spec:
     spec:
       containers:
         - name: config-server
-          image: TU_DOCKER_USER/config-server:latest
-          imagePullPolicy: Always
+          image: fergusone/config-server:1.0.0
           ports:
             - containerPort: 8888
-          env:
-            - name: SPRING_PROFILES_ACTIVE
-              value: "native"
           resources:
             requests:
               memory: "256Mi"
-              cpu: "100m"
+              cpu: "250m"
             limits:
               memory: "512Mi"
               cpu: "500m"
@@ -49,8 +43,6 @@ kind: Service
 metadata:
   name: config-server
   namespace: toolrent
-  labels:
-    app: config-server
 spec:
   type: ClusterIP
   selector:
@@ -58,4 +50,3 @@ spec:
   ports:
     - port: 8888
       targetPort: 8888
-      protocol: TCP

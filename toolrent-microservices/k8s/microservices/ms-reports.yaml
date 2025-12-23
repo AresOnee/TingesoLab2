@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: api-gateway
+  name: ms-reports
   namespace: toolrent
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: api-gateway
+      app: ms-reports
   template:
     metadata:
       labels:
-        app: api-gateway
+        app: ms-reports
     spec:
       containers:
-        - name: api-gateway
-          image: fergusone/api-gateway:1.0.0
+        - name: ms-reports
+          image: fergusone/ms-reports:1.0.0
           ports:
             - containerPort: 8080
           env:
@@ -32,26 +32,24 @@ spec:
             httpGet:
               path: /actuator/health
               port: 8080
-            initialDelaySeconds: 30
+            initialDelaySeconds: 45
             periodSeconds: 10
           livenessProbe:
             httpGet:
               path: /actuator/health
               port: 8080
-            initialDelaySeconds: 60
+            initialDelaySeconds: 90
             periodSeconds: 30
 ---
-# API Gateway usa NodePort (único servicio expuesto externamente)
 apiVersion: v1
 kind: Service
 metadata:
-  name: api-gateway
+  name: ms-reports
   namespace: toolrent
 spec:
-  type: NodePort
+  type: ClusterIP
   selector:
-    app: api-gateway
+    app: ms-reports
   ports:
     - port: 8080
       targetPort: 8080
-      nodePort: 30080

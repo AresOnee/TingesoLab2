@@ -1,24 +1,36 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: api-gateway
+  name: ms-users
   namespace: toolrent
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: api-gateway
+      app: ms-users
   template:
     metadata:
       labels:
-        app: api-gateway
+        app: ms-users
     spec:
       containers:
-        - name: api-gateway
-          image: fergusone/api-gateway:1.0.0
+        - name: ms-users
+          image: fergusone/ms-users:1.0.0
           ports:
             - containerPort: 8080
           env:
+            - name: SPRING_DATASOURCE_URL
+              value: "jdbc:mysql://mysql-users:3306/users_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&characterEncoding=UTF-8"
+            - name: SPRING_DATASOURCE_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-credentials
+                  key: MYSQL_USER
+            - name: SPRING_DATASOURCE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-credentials
+                  key: MYSQL_PASSWORD
             - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
               value: "http://eureka-server:8761/eureka/"
           resources:
@@ -32,26 +44,24 @@ spec:
             httpGet:
               path: /actuator/health
               port: 8080
-            initialDelaySeconds: 30
+            initialDelaySeconds: 45
             periodSeconds: 10
           livenessProbe:
             httpGet:
               path: /actuator/health
               port: 8080
-            initialDelaySeconds: 60
+            initialDelaySeconds: 90
             periodSeconds: 30
 ---
-# API Gateway usa NodePort (único servicio expuesto externamente)
 apiVersion: v1
 kind: Service
 metadata:
-  name: api-gateway
+  name: ms-users
   namespace: toolrent
 spec:
-  type: NodePort
+  type: ClusterIP
   selector:
-    app: api-gateway
+    app: ms-users
   ports:
     - port: 8080
       targetPort: 8080
-      nodePort: 30080

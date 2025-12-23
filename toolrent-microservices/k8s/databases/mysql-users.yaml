@@ -1,0 +1,67 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: mysql-users-pvc
+  namespace: toolrent
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-users
+  namespace: toolrent
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql-users
+  template:
+    metadata:
+      labels:
+        app: mysql-users
+    spec:
+      containers:
+        - name: mysql
+          image: mysql:8.0
+          ports:
+            - containerPort: 3306
+          env:
+            - name: MYSQL_ROOT_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-credentials
+                  key: MYSQL_ROOT_PASSWORD
+            - name: MYSQL_DATABASE
+              value: "users_db"
+          volumeMounts:
+            - name: mysql-storage
+              mountPath: /var/lib/mysql
+          resources:
+            requests:
+              memory: "256Mi"
+              cpu: "250m"
+            limits:
+              memory: "512Mi"
+              cpu: "500m"
+      volumes:
+        - name: mysql-storage
+          persistentVolumeClaim:
+            claimName: mysql-users-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-users
+  namespace: toolrent
+spec:
+  type: ClusterIP
+  selector:
+    app: mysql-users
+  ports:
+    - port: 3306
+      targetPort: 3306
