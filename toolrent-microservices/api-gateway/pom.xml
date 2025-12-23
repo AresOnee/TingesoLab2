@@ -14,7 +14,7 @@
     <groupId>com.toolrent</groupId>
     <artifactId>api-gateway</artifactId>
     <version>1.0.0</version>
-    <n>api-gateway</n>
+    <name>api-gateway</name>
     <description>API Gateway para ToolRent Microservices</description>
     
     <properties>

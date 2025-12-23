@@ -1,0 +1,114 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      # Rutas a los microservicios
+      routes:
+        # MS-TOOLS (Épica 1: Gestión de Herramientas)
+        - id: ms-tools
+          uri: lb://MS-TOOLS
+          predicates:
+            - Path=/api/v1/tools/**
+          filters:
+            - RewritePath=/api/v1/tools/(?<segment>.*), /api/v1/tools/${segment}
+        
+        # MS-LOANS (Épica 2: Préstamos y Devoluciones)
+        - id: ms-loans
+          uri: lb://MS-LOANS
+          predicates:
+            - Path=/api/v1/loans/**
+          filters:
+            - RewritePath=/api/v1/loans/(?<segment>.*), /api/v1/loans/${segment}
+        
+        # MS-CLIENTS (Épica 3: Gestión de Clientes)
+        - id: ms-clients
+          uri: lb://MS-CLIENTS
+          predicates:
+            - Path=/api/v1/clients/**
+          filters:
+            - RewritePath=/api/v1/clients/(?<segment>.*), /api/v1/clients/${segment}
+        
+        # MS-CONFIG (Épica 4: Gestión de Tarifas)
+        - id: ms-config
+          uri: lb://MS-CONFIG
+          predicates:
+            - Path=/api/v1/config/**
+          filters:
+            - RewritePath=/api/v1/config/(?<segment>.*), /api/v1/config/${segment}
+        
+        # MS-KARDEX (Épica 5: Kardex y Movimientos)
+        - id: ms-kardex
+          uri: lb://MS-KARDEX
+          predicates:
+            - Path=/api/v1/kardex/**
+          filters:
+            - RewritePath=/api/v1/kardex/(?<segment>.*), /api/v1/kardex/${segment}
+        
+        # MS-REPORTS (Épica 6: Reportes y Consultas)
+        - id: ms-reports
+          uri: lb://MS-REPORTS
+          predicates:
+            - Path=/api/v1/reports/**
+          filters:
+            - RewritePath=/api/v1/reports/(?<segment>.*), /api/v1/reports/${segment}
+        
+        # MS-USERS (Épica 7: Usuarios y Roles)
+        - id: ms-users
+          uri: lb://MS-USERS
+          predicates:
+            - Path=/api/v1/users/**
+            - Path=/api/v1/auth/**
+          filters:
+            - RewritePath=/api/v1/(?<segment>.*), /api/v1/${segment}
+
+      # Configuración global
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Credentials Access-Control-Allow-Origin
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:3000"
+              - "http://localhost:5173"
+              - "http://frontend:80"
+              - "http://frontend:3000"
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
+              - PATCH
+            allowedHeaders:
+              - "*"
+            allowCredentials: true
+            maxAge: 3600
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://eureka-server:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+# Actuator endpoints
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+  endpoint:
+    health:
+      show-details: always
+    gateway:
+      enabled: true
+
+# Logging
+logging:
+  level:
+    org.springframework.cloud.gateway: DEBUG
+    reactor.netty: DEBUG
