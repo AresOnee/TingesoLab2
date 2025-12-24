@@ -1,5 +1,0 @@
-com\toolrent\msclients\service\ClientService.class
-com\toolrent\msclients\MsClientsApplication.class
-com\toolrent\msclients\entity\ClientEntity.class
-com\toolrent\msclients\controller\ClientController.class
-com\toolrent\msclients\repository\ClientRepository.class

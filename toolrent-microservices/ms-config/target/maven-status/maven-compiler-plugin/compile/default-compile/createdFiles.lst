@@ -1,5 +1,0 @@
-com\toolrent\msconfig\service\ConfigService.class
-com\toolrent\msconfig\MsConfigApplication.class
-com\toolrent\msconfig\controller\ConfigController.class
-com\toolrent\msconfig\repository\ConfigRepository.class
-com\toolrent\msconfig\entity\ConfigEntity.class

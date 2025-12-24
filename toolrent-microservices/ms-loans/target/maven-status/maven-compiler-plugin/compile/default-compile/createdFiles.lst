@@ -1,8 +1,0 @@
-com\toolrent\msloans\controller\LoanController.class
-com\toolrent\msloans\repository\LoanRepository.class
-com\toolrent\msloans\dto\ClientDTO.class
-com\toolrent\msloans\dto\ConfigDTO.class
-com\toolrent\msloans\MsLoansApplication.class
-com\toolrent\msloans\dto\ToolDTO.class
-com\toolrent\msloans\service\LoanService.class
-com\toolrent\msloans\entity\LoanEntity.class

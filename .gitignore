@@ -1,3 +1,13 @@
 toolrent-microservices/api-gateway/target/api-gateway-1.0.0.jar
 toolrent-microservices/api-gateway/target/api-gateway-1.0.0.jar.original
 toolrent-microservices/api-gateway/target/api-gateway-1.0.0.jar.original
+# Ignorar archivos compilados y empaquetados
+target/
+*.jar
+*.class
+
+# Ignorar logs y configuraciones de IDE (opcional pero recomendado)
+*.log
+.idea/
+.vscode/
+*.iml
