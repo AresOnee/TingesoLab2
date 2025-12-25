@@ -96,11 +96,11 @@ spring:
             maxAge: 3600
 
   # Configuracion OAuth2 Resource Server (Keycloak - sisgr-realm)
+  # Solo usa jwk-set-uri para validar firma, sin validar issuer
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://keycloak:8080/realms/sisgr-realm}
           jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://keycloak:8080/realms/sisgr-realm/protocol/openid-connect/certs}
 
 eureka:
