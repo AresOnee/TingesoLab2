@@ -3,7 +3,6 @@
 # =====================================================
 # Usa el realm sisgr-realm existente (del proyecto original)
 # Roles: ADMIN, USER
-# Después de desplegar, importar realm-export.json desde la UI de admin
 
 apiVersion: apps/v1
 kind: Deployment
@@ -34,35 +33,29 @@ spec:
             - name: KEYCLOAK_ADMIN
               value: "admin"
             - name: KEYCLOAK_ADMIN_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: keycloak-credentials
-                  key: admin-password
+              value: "admin123"
             - name: KC_HEALTH_ENABLED
               value: "true"
             - name: KC_HOSTNAME_STRICT
               value: "false"
             - name: KC_HTTP_ENABLED
               value: "true"
-            - name: KC_PROXY
-              value: "edge"
           resources:
             requests:
-              memory: "512Mi"
+              memory: "768Mi"
               cpu: "500m"
             limits:
-              memory: "1Gi"
-              cpu: "1000m"
+              memory: "1.5Gi"
+              cpu: "1500m"
+          # Usar TCP socket en lugar de HTTP para evitar 404
           readinessProbe:
-            httpGet:
-              path: /health/ready
+            tcpSocket:
               port: 8080
-            initialDelaySeconds: 60
+            initialDelaySeconds: 90
             periodSeconds: 10
             timeoutSeconds: 5
           livenessProbe:
-            httpGet:
-              path: /health/live
+            tcpSocket:
               port: 8080
             initialDelaySeconds: 120
             periodSeconds: 30
@@ -102,13 +95,3 @@ spec:
       targetPort: 8080
       nodePort: 30090
       name: http
----
-# Secret para credenciales de Keycloak
-apiVersion: v1
-kind: Secret
-metadata:
-  name: keycloak-credentials
-  namespace: toolrent
-type: Opaque
-stringData:
-  admin-password: "admin123"
