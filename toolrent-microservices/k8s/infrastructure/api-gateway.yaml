@@ -22,9 +22,9 @@ spec:
             - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
               value: "http://eureka-server:8761/eureka/"
             - name: KEYCLOAK_ISSUER_URI
-              value: "http://keycloak:8080/realms/toolrent"
+              value: "http://keycloak:8080/realms/sisgr-realm"
             - name: KEYCLOAK_JWK_SET_URI
-              value: "http://keycloak:8080/realms/toolrent/protocol/openid-connect/certs"
+              value: "http://keycloak:8080/realms/sisgr-realm/protocol/openid-connect/certs"
           resources:
             requests:
               memory: "256Mi"

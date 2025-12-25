@@ -14,19 +14,19 @@ import org.springframework.security.oauth2.server.resource.authentication.Reacti
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import reactor.core.publisher.Mono;
 
+import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
  * Configuracion de seguridad para el API Gateway.
- * Valida tokens JWT de Keycloak y aplica autorizacion basada en roles.
+ * Valida tokens JWT de Keycloak (sisgr-realm) y aplica autorizacion basada en roles.
  *
- * Roles:
- * - ADMIN: Acceso total a todas las operaciones
- * - EMPLEADO: Acceso a prestamos, devoluciones y reportes
+ * Roles (igual que backend-toolrent):
+ * - ADMIN: Acceso total - crear/modificar herramientas, clientes, configuraciones
+ * - USER: Acceso a prestamos, devoluciones, reportes y consultas
  */
 @Configuration
 @EnableWebFluxSecurity
@@ -40,42 +40,62 @@ public class SecurityConfig {
 
             // Configurar autorizacion de endpoints
             .authorizeExchange(exchanges -> exchanges
-                // Endpoints publicos - Health checks y actuator
+                // ============ ENDPOINTS PUBLICOS ============
+                // Health checks y actuator
                 .pathMatchers("/actuator/**").permitAll()
                 .pathMatchers("/actuator/health/**").permitAll()
 
-                // Endpoints publicos - Consultas GET sin autenticacion
-                .pathMatchers(HttpMethod.GET, "/api/v1/tools/**").permitAll()
-                .pathMatchers(HttpMethod.GET, "/api/v1/clients/**").permitAll()
-                .pathMatchers(HttpMethod.GET, "/api/v1/config/**").permitAll()
-                .pathMatchers(HttpMethod.GET, "/api/v1/kardex/**").permitAll()
+                // Preflight CORS
+                .pathMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                // ADMIN ONLY - Operaciones de escritura en herramientas
+                // Swagger/OpenAPI (si se usa)
+                .pathMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+
+                // ============ MS-TOOLS (Herramientas) ============
+                // GET: USER y ADMIN pueden consultar
+                .pathMatchers(HttpMethod.GET, "/api/v1/tools/**").hasAnyRole("USER", "ADMIN")
+                // POST: Solo ADMIN puede crear herramientas
                 .pathMatchers(HttpMethod.POST, "/api/v1/tools/**").hasRole("ADMIN")
+                // PUT: Solo ADMIN puede dar de baja herramientas
                 .pathMatchers(HttpMethod.PUT, "/api/v1/tools/**").hasRole("ADMIN")
-                .pathMatchers(HttpMethod.DELETE, "/api/v1/tools/**").hasRole("ADMIN")
                 .pathMatchers(HttpMethod.PATCH, "/api/v1/tools/**").hasRole("ADMIN")
+                .pathMatchers(HttpMethod.DELETE, "/api/v1/tools/**").hasRole("ADMIN")
 
-                // ADMIN ONLY - Operaciones de escritura en clientes
+                // ============ MS-CLIENTS (Clientes) ============
+                // GET: USER y ADMIN pueden consultar
+                .pathMatchers(HttpMethod.GET, "/api/v1/clients/**").hasAnyRole("USER", "ADMIN")
+                // POST/PUT: Solo ADMIN puede crear/modificar clientes
                 .pathMatchers(HttpMethod.POST, "/api/v1/clients/**").hasRole("ADMIN")
                 .pathMatchers(HttpMethod.PUT, "/api/v1/clients/**").hasRole("ADMIN")
                 .pathMatchers(HttpMethod.DELETE, "/api/v1/clients/**").hasRole("ADMIN")
 
-                // ADMIN ONLY - Configuracion de tarifas
-                .pathMatchers(HttpMethod.POST, "/api/v1/config/**").hasRole("ADMIN")
+                // ============ MS-CONFIG (Configuraciones/Tarifas) ============
+                // GET: USER y ADMIN pueden ver configuraciones
+                .pathMatchers(HttpMethod.GET, "/api/v1/config/**").hasAnyRole("USER", "ADMIN")
+                // PUT: Solo ADMIN puede modificar tarifas
                 .pathMatchers(HttpMethod.PUT, "/api/v1/config/**").hasRole("ADMIN")
+                .pathMatchers(HttpMethod.POST, "/api/v1/config/**").hasRole("ADMIN")
                 .pathMatchers(HttpMethod.DELETE, "/api/v1/config/**").hasRole("ADMIN")
 
-                // ADMIN + EMPLEADO - Prestamos y devoluciones
-                .pathMatchers("/api/v1/loans/**").hasAnyRole("ADMIN", "EMPLEADO")
+                // ============ MS-LOANS (Prestamos) ============
+                // USER y ADMIN pueden crear prestamos y registrar devoluciones
+                .pathMatchers("/api/v1/loans/**").hasAnyRole("USER", "ADMIN")
 
-                // ADMIN + EMPLEADO - Reportes
-                .pathMatchers("/api/v1/reports/**").hasAnyRole("ADMIN", "EMPLEADO")
-
-                // ADMIN ONLY - Kardex (operaciones de escritura)
+                // ============ MS-KARDEX (Movimientos) ============
+                // USER y ADMIN pueden consultar kardex
+                .pathMatchers(HttpMethod.GET, "/api/v1/kardex/**").hasAnyRole("USER", "ADMIN")
+                // Solo ADMIN puede crear movimientos directamente (normalmente se crean via loans)
                 .pathMatchers(HttpMethod.POST, "/api/v1/kardex/**").hasRole("ADMIN")
                 .pathMatchers(HttpMethod.PUT, "/api/v1/kardex/**").hasRole("ADMIN")
                 .pathMatchers(HttpMethod.DELETE, "/api/v1/kardex/**").hasRole("ADMIN")
+
+                // ============ MS-REPORTS (Reportes) ============
+                // USER y ADMIN pueden ver reportes
+                .pathMatchers("/api/v1/reports/**").hasAnyRole("USER", "ADMIN")
+
+                // ============ MS-USERS (si se mantiene) ============
+                .pathMatchers("/api/v1/users/**").hasAnyRole("USER", "ADMIN")
+                .pathMatchers("/api/v1/auth/**").permitAll()
 
                 // Cualquier otra peticion requiere autenticacion
                 .anyExchange().authenticated()
@@ -91,44 +111,62 @@ public class SecurityConfig {
 
     /**
      * Convertidor de JWT para extraer roles de Keycloak.
-     * Keycloak almacena los roles en el claim "realm_access.roles" o directamente en "roles".
+     * Extrae roles de realm_access y resource_access (igual que backend-toolrent).
      */
     @Bean
     public Converter<Jwt, Mono<org.springframework.security.authentication.AbstractAuthenticationToken>> jwtAuthenticationConverter() {
         JwtAuthenticationConverter jwtConverter = new JwtAuthenticationConverter();
-        jwtConverter.setJwtGrantedAuthoritiesConverter(new KeycloakRealmRoleConverter());
+        jwtConverter.setJwtGrantedAuthoritiesConverter(new KeycloakRoleConverter());
         return new ReactiveJwtAuthenticationConverterAdapter(jwtConverter);
     }
 
     /**
      * Convertidor de roles de Keycloak.
-     * Extrae los roles del realm desde el JWT y los convierte a GrantedAuthority.
+     * Extrae los roles del realm y del cliente desde el JWT.
+     * Compatible con la configuracion de sisgr-realm.
      */
-    static class KeycloakRealmRoleConverter implements Converter<Jwt, Collection<GrantedAuthority>> {
+    static class KeycloakRoleConverter implements Converter<Jwt, Collection<GrantedAuthority>> {
 
         @Override
         @SuppressWarnings("unchecked")
         public Collection<GrantedAuthority> convert(Jwt jwt) {
-            // Intentar obtener roles desde realm_access (formato estandar de Keycloak)
+            List<GrantedAuthority> authorities = new ArrayList<>();
+
+            // 1. Extraer roles de realm_access.roles (roles globales del realm)
             Map<String, Object> realmAccess = jwt.getClaim("realm_access");
-            if (realmAccess != null) {
-                List<String> roles = (List<String>) realmAccess.get("roles");
-                if (roles != null) {
-                    return roles.stream()
-                        .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
-                        .collect(Collectors.toList());
+            if (realmAccess != null && realmAccess.containsKey("roles")) {
+                List<String> realmRoles = (List<String>) realmAccess.get("roles");
+                if (realmRoles != null) {
+                    authorities.addAll(
+                        realmRoles.stream()
+                            .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+                            .collect(Collectors.toList())
+                    );
                 }
             }
 
-            // Intentar obtener roles directamente del claim "roles" (configuracion personalizada)
-            List<String> directRoles = jwt.getClaim("roles");
-            if (directRoles != null) {
-                return directRoles.stream()
-                    .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
-                    .collect(Collectors.toList());
+            // 2. Extraer roles de resource_access.[client].roles (roles del cliente)
+            Map<String, Object> resourceAccess = jwt.getClaim("resource_access");
+            if (resourceAccess != null) {
+                // Buscar roles en cualquier cliente configurado
+                for (Object clientData : resourceAccess.values()) {
+                    if (clientData instanceof Map) {
+                        Map<String, Object> clientMap = (Map<String, Object>) clientData;
+                        if (clientMap.containsKey("roles")) {
+                            List<String> clientRoles = (List<String>) clientMap.get("roles");
+                            if (clientRoles != null) {
+                                authorities.addAll(
+                                    clientRoles.stream()
+                                        .map(role -> new SimpleGrantedAuthority("ROLE_" + role))
+                                        .collect(Collectors.toList())
+                                );
+                            }
+                        }
+                    }
+                }
             }
 
-            return Collections.emptyList();
+            return authorities;
         }
     }
 }

@@ -198,8 +198,8 @@ services:
         condition: service_healthy
     environment:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
-      - KEYCLOAK_ISSUER_URI=http://keycloak:8080/realms/toolrent
-      - KEYCLOAK_JWK_SET_URI=http://keycloak:8080/realms/toolrent/protocol/openid-connect/certs
+      - KEYCLOAK_ISSUER_URI=http://keycloak:8080/realms/sisgr-realm
+      - KEYCLOAK_JWK_SET_URI=http://keycloak:8080/realms/sisgr-realm/protocol/openid-connect/certs
     networks:
       - toolrent-network
 

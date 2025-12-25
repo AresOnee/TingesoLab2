@@ -1,8 +1,9 @@
 # =====================================================
 # KEYCLOAK - Identity and Access Management
 # =====================================================
-# Desplegado en modo desarrollo para simplicidad
-# En producción, usar PostgreSQL como base de datos
+# Usa el realm sisgr-realm existente (del proyecto original)
+# Roles: ADMIN, USER
+# Después de desplegar, importar realm-export.json desde la UI de admin
 
 apiVersion: apps/v1
 kind: Deployment
@@ -26,7 +27,6 @@ spec:
           image: quay.io/keycloak/keycloak:23.0
           args:
             - start-dev
-            - --import-realm
           ports:
             - containerPort: 8080
               name: http
@@ -46,10 +46,6 @@ spec:
               value: "true"
             - name: KC_PROXY
               value: "edge"
-          volumeMounts:
-            - name: realm-config
-              mountPath: /opt/keycloak/data/import
-              readOnly: true
           resources:
             requests:
               memory: "512Mi"
@@ -71,12 +67,8 @@ spec:
             initialDelaySeconds: 120
             periodSeconds: 30
             timeoutSeconds: 5
-      volumes:
-        - name: realm-config
-          configMap:
-            name: keycloak-realm-config
 ---
-# Service - ClusterIP para acceso interno
+# Service - ClusterIP para acceso interno desde API Gateway
 apiVersion: v1
 kind: Service
 metadata:

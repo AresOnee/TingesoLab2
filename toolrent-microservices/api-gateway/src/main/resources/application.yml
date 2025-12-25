@@ -95,13 +95,13 @@ spring:
             allowCredentials: true
             maxAge: 3600
 
-  # Configuracion OAuth2 Resource Server (Keycloak)
+  # Configuracion OAuth2 Resource Server (Keycloak - sisgr-realm)
   security:
     oauth2:
       resourceserver:
         jwt:
-          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://keycloak:8080/realms/toolrent}
-          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://keycloak:8080/realms/toolrent/protocol/openid-connect/certs}
+          issuer-uri: ${KEYCLOAK_ISSUER_URI:http://keycloak:8080/realms/sisgr-realm}
+          jwk-set-uri: ${KEYCLOAK_JWK_SET_URI:http://keycloak:8080/realms/sisgr-realm/protocol/openid-connect/certs}
 
 eureka:
   client:
