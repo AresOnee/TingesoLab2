@@ -1,0 +1,114 @@
+# =====================================================
+# KEYCLOAK - Identity and Access Management
+# =====================================================
+# Usa el realm sisgr-realm existente (del proyecto original)
+# Roles: ADMIN, USER
+# Después de desplegar, importar realm-export.json desde la UI de admin
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+  namespace: toolrent
+  labels:
+    app: keycloak
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keycloak
+  template:
+    metadata:
+      labels:
+        app: keycloak
+    spec:
+      containers:
+        - name: keycloak
+          image: quay.io/keycloak/keycloak:23.0
+          args:
+            - start-dev
+          ports:
+            - containerPort: 8080
+              name: http
+          env:
+            - name: KEYCLOAK_ADMIN
+              value: "admin"
+            - name: KEYCLOAK_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: keycloak-credentials
+                  key: admin-password
+            - name: KC_HEALTH_ENABLED
+              value: "true"
+            - name: KC_HOSTNAME_STRICT
+              value: "false"
+            - name: KC_HTTP_ENABLED
+              value: "true"
+            - name: KC_PROXY
+              value: "edge"
+          resources:
+            requests:
+              memory: "512Mi"
+              cpu: "500m"
+            limits:
+              memory: "1Gi"
+              cpu: "1000m"
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 120
+            periodSeconds: 30
+            timeoutSeconds: 5
+---
+# Service - ClusterIP para acceso interno desde API Gateway
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak
+  namespace: toolrent
+  labels:
+    app: keycloak
+spec:
+  type: ClusterIP
+  selector:
+    app: keycloak
+  ports:
+    - port: 8080
+      targetPort: 8080
+      name: http
+---
+# Service - NodePort para acceso externo (Admin Console)
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak-external
+  namespace: toolrent
+  labels:
+    app: keycloak
+spec:
+  type: NodePort
+  selector:
+    app: keycloak
+  ports:
+    - port: 8080
+      targetPort: 8080
+      nodePort: 30090
+      name: http
+---
+# Secret para credenciales de Keycloak
+apiVersion: v1
+kind: Secret
+metadata:
+  name: keycloak-credentials
+  namespace: toolrent
+type: Opaque
+stringData:
+  admin-password: "admin123"

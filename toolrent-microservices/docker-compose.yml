@@ -129,8 +129,32 @@ services:
     networks:
       - toolrent-network
 
+  # ==================== KEYCLOAK (IAM) ====================
+
+  keycloak:
+    image: quay.io/keycloak/keycloak:23.0
+    container_name: keycloak
+    command: start-dev --import-realm
+    environment:
+      - KEYCLOAK_ADMIN=admin
+      - KEYCLOAK_ADMIN_PASSWORD=admin123
+      - KC_HEALTH_ENABLED=true
+      - KC_HOSTNAME_STRICT=false
+    ports:
+      - "9090:8080"
+    volumes:
+      - ../keycloak-config:/opt/keycloak/data/import:ro
+    healthcheck:
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/8080 && exec 3>&- && exec 3<&-"]
+      interval: 15s
+      timeout: 5s
+      retries: 10
+      start_period: 120s
+    networks:
+      - toolrent-network
+
   # ==================== INFRAESTRUCTURA ====================
-  
+
   config-server:
     build: ./config-server
     container_name: config-server
@@ -170,8 +194,12 @@ services:
     depends_on:
       eureka-server:
         condition: service_healthy
+      keycloak:
+        condition: service_healthy
     environment:
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - KEYCLOAK_ISSUER_URI=http://keycloak:8080/realms/sisgr-realm
+      - KEYCLOAK_JWK_SET_URI=http://keycloak:8080/realms/sisgr-realm/protocol/openid-connect/certs
     networks:
       - toolrent-network
 
