@@ -7,8 +7,20 @@ SET NAMES utf8mb4;
 SET CHARACTER SET utf8mb4;
 SET collation_connection = 'utf8mb4_unicode_ci';
 
+-- Crear tabla si no existe (estructura basada en ConfigEntity.java)
+CREATE TABLE IF NOT EXISTS system_config (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    config_key VARCHAR(100) NOT NULL,
+    config_value DOUBLE NOT NULL,
+    description VARCHAR(255),
+    last_modified DATETIME NOT NULL,
+    modified_by VARCHAR(255),
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_config_key (config_key)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Limpiar datos existentes
-TRUNCATE TABLE system_config;
+DELETE FROM system_config;
 
 -- ============================================
 -- CONFIGURACIÓN DEL SISTEMA (Épica 4)

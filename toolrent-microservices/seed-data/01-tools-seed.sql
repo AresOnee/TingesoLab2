@@ -7,8 +7,20 @@ SET NAMES utf8mb4;
 SET CHARACTER SET utf8mb4;
 SET collation_connection = 'utf8mb4_unicode_ci';
 
--- Limpiar datos existentes
-TRUNCATE TABLE tools;
+-- Crear tabla si no existe (estructura basada en ToolEntity.java)
+CREATE TABLE IF NOT EXISTS tools (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL,
+    category VARCHAR(255) NOT NULL,
+    status VARCHAR(255) NOT NULL,
+    replacement_value INT NOT NULL,
+    stock INT NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_tools_name (name)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Limpiar datos existentes (DELETE en lugar de TRUNCATE para evitar errores)
+DELETE FROM tools;
 
 -- ============================================
 -- HERRAMIENTAS (Épica 1)

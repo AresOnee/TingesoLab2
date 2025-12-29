@@ -7,8 +7,22 @@ SET NAMES utf8mb4;
 SET CHARACTER SET utf8mb4;
 SET collation_connection = 'utf8mb4_unicode_ci';
 
+-- Crear tabla si no existe (estructura basada en KardexEntity.java)
+CREATE TABLE IF NOT EXISTS kardex (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    movement_type VARCHAR(50) NOT NULL,
+    tool_id BIGINT NOT NULL,
+    tool_name VARCHAR(255),
+    quantity INT NOT NULL,
+    username VARCHAR(100),
+    movement_date DATETIME NOT NULL,
+    observations TEXT,
+    loan_id BIGINT,
+    PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Limpiar datos existentes
-TRUNCATE TABLE kardex;
+DELETE FROM kardex;
 
 -- ============================================
 -- KARDEX (Épica 5: Trazabilidad de Inventario)

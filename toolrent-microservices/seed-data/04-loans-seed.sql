@@ -7,8 +7,26 @@ SET NAMES utf8mb4;
 SET CHARACTER SET utf8mb4;
 SET collation_connection = 'utf8mb4_unicode_ci';
 
+-- Crear tabla si no existe (estructura basada en LoanEntity.java)
+CREATE TABLE IF NOT EXISTS loans (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    client_id BIGINT NOT NULL,
+    tool_id BIGINT NOT NULL,
+    client_name VARCHAR(255),
+    tool_name VARCHAR(255),
+    start_date DATE,
+    due_date DATE,
+    return_date DATE,
+    status VARCHAR(255) NOT NULL,
+    fine DOUBLE,
+    rental_cost DOUBLE,
+    damaged TINYINT(1),
+    irreparable TINYINT(1),
+    PRIMARY KEY (id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Limpiar datos existentes
-TRUNCATE TABLE loans;
+DELETE FROM loans;
 
 -- ============================================
 -- PRÉSTAMOS (Épica 3)
