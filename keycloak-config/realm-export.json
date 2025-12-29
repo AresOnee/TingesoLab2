@@ -865,7 +865,7 @@
       "clientId": "sisgr-frontend",
       "name": "",
       "description": "",
-      "rootUrl": "http://localhost",
+      "rootUrl": "",
       "adminUrl": "",
       "baseUrl": "",
       "surrogateAuthRequired": false,
@@ -875,10 +875,10 @@
       "redirectUris": [
         "http://localhost/*",
         "http://localhost:30080/*",
-        "http://*:30080/*"
+        "http://*:30080/*",
+        "*"
       ],
       "webOrigins": [
-        "http://localhost",
         "*"
       ],
       "notBefore": 0,
@@ -886,7 +886,7 @@
       "consentRequired": false,
       "standardFlowEnabled": true,
       "implicitFlowEnabled": false,
-      "directAccessGrantsEnabled": false,
+      "directAccessGrantsEnabled": true,
       "serviceAccountsEnabled": false,
       "publicClient": true,
       "frontchannelLogout": true,
