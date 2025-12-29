@@ -1,0 +1,19 @@
+# ============================================
+# FRONTEND CONFIGMAP
+# IMPORTANTE: Actualizar KEYCLOAK_URL con la IP de Minikube
+# Obtener con: minikube ip
+# ============================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: frontend-config
+  namespace: toolrent
+  labels:
+    app: frontend
+data:
+  # URL externa de Keycloak (accesible desde el navegador)
+  # Formato: http://<MINIKUBE_IP>:30090
+  # Ejemplo: http://172.21.107.107:30090
+  KEYCLOAK_URL: "http://MINIKUBE_IP_HERE:30090"
+  KEYCLOAK_REALM: "sisgr-realm"
+  KEYCLOAK_CLIENT_ID: "sisgr-frontend"

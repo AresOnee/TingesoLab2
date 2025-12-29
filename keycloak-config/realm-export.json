@@ -873,10 +873,13 @@
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
       "redirectUris": [
-        "http://localhost/*"
+        "http://localhost/*",
+        "http://localhost:30080/*",
+        "http://*:30080/*"
       ],
       "webOrigins": [
-        "http://localhost"
+        "http://localhost",
+        "*"
       ],
       "notBefore": 0,
       "bearerOnly": false,
