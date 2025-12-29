@@ -7,8 +7,21 @@ SET NAMES utf8mb4;
 SET CHARACTER SET utf8mb4;
 SET collation_connection = 'utf8mb4_unicode_ci';
 
+-- Crear tabla si no existe (estructura basada en ClientEntity.java)
+CREATE TABLE IF NOT EXISTS clients (
+    id BIGINT NOT NULL AUTO_INCREMENT,
+    name VARCHAR(255) NOT NULL,
+    rut VARCHAR(255) NOT NULL,
+    phone VARCHAR(255),
+    email VARCHAR(255),
+    state VARCHAR(20) NOT NULL,
+    PRIMARY KEY (id),
+    UNIQUE KEY uq_clients_rut (rut),
+    UNIQUE KEY uq_clients_email (email)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- Limpiar datos existentes
-TRUNCATE TABLE clients;
+DELETE FROM clients;
 
 -- ============================================
 -- CLIENTES (Épica 2)
