@@ -1,7 +1,7 @@
 # =====================================================
 # KEYCLOAK - Identity and Access Management
 # =====================================================
-# Usa el realm sisgr-realm existente (del proyecto original)
+# Importa automáticamente el realm sisgr-realm al iniciar
 # Roles: ADMIN, USER
 
 apiVersion: apps/v1
@@ -26,6 +26,7 @@ spec:
           image: quay.io/keycloak/keycloak:26.3.3
           args:
             - start-dev
+            - --import-realm
           ports:
             - containerPort: 8080
               name: http
@@ -33,13 +34,17 @@ spec:
             - name: KEYCLOAK_ADMIN
               value: "admin"
             - name: KEYCLOAK_ADMIN_PASSWORD
-              value: "admin123"
+              value: "admin"
             - name: KC_HEALTH_ENABLED
               value: "true"
             - name: KC_HOSTNAME_STRICT
               value: "false"
             - name: KC_HTTP_ENABLED
               value: "true"
+          volumeMounts:
+            - name: realm-config
+              mountPath: /opt/keycloak/data/import
+              readOnly: true
           resources:
             requests:
               memory: "768Mi"
@@ -60,6 +65,10 @@ spec:
             initialDelaySeconds: 120
             periodSeconds: 30
             timeoutSeconds: 5
+      volumes:
+        - name: realm-config
+          configMap:
+            name: keycloak-realm
 ---
 # Service - ClusterIP para acceso interno desde API Gateway
 apiVersion: v1
