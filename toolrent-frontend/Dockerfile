@@ -35,10 +35,6 @@ COPY --from=build /app/dist /usr/share/nginx/html
 # Copiar configuración personalizada de Nginx
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
-# Copiar script de entrypoint para inyectar variables de entorno
-COPY docker-entrypoint.sh /docker-entrypoint.sh
-RUN chmod +x /docker-entrypoint.sh
-
 # Exponer puerto 80
 EXPOSE 80
 
@@ -46,5 +42,15 @@ EXPOSE 80
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD wget --quiet --tries=1 --spider http://localhost/health || exit 1
 
-# Usar entrypoint para inyectar configuración en runtime
-ENTRYPOINT ["/docker-entrypoint.sh"]
+# Script de inicio que inyecta variables y arranca nginx
+CMD sh -c '\
+  ENV_FILE=/usr/share/nginx/html/env.js && \
+  KEYCLOAK_URL=${KEYCLOAK_URL:-http://localhost:9090} && \
+  KEYCLOAK_REALM=${KEYCLOAK_REALM:-sisgr-realm} && \
+  KEYCLOAK_CLIENT_ID=${KEYCLOAK_CLIENT_ID:-sisgr-frontend} && \
+  echo "Configurando frontend con KEYCLOAK_URL=$KEYCLOAK_URL" && \
+  sed -i "s|__KEYCLOAK_URL__|${KEYCLOAK_URL}|g" $ENV_FILE && \
+  sed -i "s|__KEYCLOAK_REALM__|${KEYCLOAK_REALM}|g" $ENV_FILE && \
+  sed -i "s|__KEYCLOAK_CLIENT_ID__|${KEYCLOAK_CLIENT_ID}|g" $ENV_FILE && \
+  cat $ENV_FILE && \
+  nginx -g "daemon off;"'
