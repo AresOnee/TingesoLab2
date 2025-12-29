@@ -1,0 +1,94 @@
+# ============================================
+# API GATEWAY CONFIG FOR KUBERNETES
+# Usa URLs directas de K8s en lugar de Eureka
+# ============================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: api-gateway-config
+  namespace: toolrent
+  labels:
+    app: api-gateway
+data:
+  application.yml: |
+    server:
+      port: 8080
+
+    spring:
+      application:
+        name: api-gateway
+      cloud:
+        gateway:
+          routes:
+            # MS-TOOLS
+            - id: ms-tools
+              uri: http://ms-tools:8080
+              predicates:
+                - Path=/api/v1/tools/**
+            # MS-LOANS
+            - id: ms-loans
+              uri: http://ms-loans:8080
+              predicates:
+                - Path=/api/v1/loans/**
+            # MS-CLIENTS
+            - id: ms-clients
+              uri: http://ms-clients:8080
+              predicates:
+                - Path=/api/v1/clients/**
+            # MS-CONFIG
+            - id: ms-config
+              uri: http://ms-config:8080
+              predicates:
+                - Path=/api/v1/config/**
+            # MS-KARDEX
+            - id: ms-kardex
+              uri: http://ms-kardex:8080
+              predicates:
+                - Path=/api/v1/kardex/**
+            # MS-REPORTS
+            - id: ms-reports
+              uri: http://ms-reports:8080
+              predicates:
+                - Path=/api/v1/reports/**
+            # MS-USERS
+            - id: ms-users
+              uri: http://ms-users:8080
+              predicates:
+                - Path=/api/v1/users/**
+            # MS-USERS Auth
+            - id: ms-users-auth
+              uri: http://ms-users:8080
+              predicates:
+                - Path=/api/v1/auth/**
+          globalcors:
+            corsConfigurations:
+              '[/**]':
+                allowedOrigins: "*"
+                allowedMethods:
+                  - GET
+                  - POST
+                  - PUT
+                  - DELETE
+                  - OPTIONS
+                  - PATCH
+                allowedHeaders: "*"
+                allowCredentials: false
+                maxAge: 3600
+
+    # Deshabilitar Eureka para K8s
+    eureka:
+      client:
+        enabled: false
+
+    # OAuth2 Resource Server (Keycloak)
+    spring.security.oauth2.resourceserver.jwt.jwk-set-uri: http://keycloak:8080/realms/sisgr-realm/protocol/openid-connect/certs
+
+    # Actuator
+    management:
+      endpoints:
+        web:
+          exposure:
+            include: health,info,gateway
+      endpoint:
+        health:
+          show-details: always
