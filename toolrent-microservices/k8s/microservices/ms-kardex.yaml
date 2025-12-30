@@ -33,8 +33,8 @@ spec:
                 secretKeyRef:
                   name: mysql-credentials
                   key: MYSQL_PASSWORD
-            - name: EUREKA_CLIENT_ENABLED
-              value: "false"
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              value: "http://eureka-server:8761/eureka/"
           resources:
             requests:
               memory: "256Mi"
