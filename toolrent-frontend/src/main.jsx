@@ -32,8 +32,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
     initOptions={{
       onLoad: "login-required",
       checkLoginIframe: false,
-      // PKCE deshabilitado para permitir HTTP con IP (no localhost)
-      // pkceMethod: "S256",
+      // PKCE deshabilitado - string vacío para deshabilitar completamente
+      pkceMethod: "",
+      enableLogging: true,
     }}
     LoadingComponent={<LoadingComponent />}
     onEvent={(event, error) => {

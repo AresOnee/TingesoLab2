@@ -7,6 +7,7 @@ import Keycloak from "keycloak-js";
 const getKeycloakConfig = () => {
   // Primero intenta usar window.ENV (configuración runtime para K8s)
   if (typeof window !== 'undefined' && window.ENV) {
+    console.log("🔐 Usando window.ENV para config:", window.ENV);
     return {
       url: window.ENV.KEYCLOAK_URL || "http://localhost:9090",
       realm: window.ENV.KEYCLOAK_REALM || "sisgr-realm",
@@ -15,6 +16,7 @@ const getKeycloakConfig = () => {
   }
 
   // Fallback a variables de entorno de Vite (desarrollo)
+  console.log("🔐 Usando fallback config (Vite env)");
   return {
     url: import.meta.env.VITE_KEYCLOAK_URL || "http://localhost:9090",
     realm: import.meta.env.VITE_KEYCLOAK_REALM || "sisgr-realm",
@@ -22,35 +24,9 @@ const getKeycloakConfig = () => {
   };
 };
 
-const keycloak = new Keycloak(getKeycloakConfig());
+const config = getKeycloakConfig();
+console.log("🔐 Keycloak config final:", config);
 
-export async function initKeycloak() {
-  const authenticated = await keycloak.init({
-    onLoad: "login-required",
-    checkLoginIframe: false,
-    pkceMethod: "S256",
-  });
-
-  if (!authenticated) {
-    await keycloak.login();
-  }
-
-  // Guarda referencia global y token para que cualquier módulo lo pueda leer
-  window.keycloak = keycloak;
-  localStorage.setItem("kc_token", keycloak.token);
-
-  // Mantén el token fresco
-  setInterval(async () => {
-    try {
-      const refreshed = await keycloak.updateToken(30);
-      if (refreshed) {
-        localStorage.setItem("kc_token", keycloak.token);
-      }
-    } catch (e) {
-      console.error("Fallo refrescando token:", e);
-      keycloak.login();
-    }
-  }, 25_000);
-}
+const keycloak = new Keycloak(config);
 
 export default keycloak;
