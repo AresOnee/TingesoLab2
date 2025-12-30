@@ -12,65 +12,49 @@ spring:
         - id: ms-tools
           uri: lb://MS-TOOLS
           predicates:
-            - Path=/api/v1/tools/**
-          filters:
-            - RewritePath=/api/v1/tools/(?<segment>.*), /api/v1/tools/${segment}
-        
+            - Path=/api/v1/tools,/api/v1/tools/**
+
         # MS-LOANS (Épica 2: Préstamos y Devoluciones)
         - id: ms-loans
           uri: lb://MS-LOANS
           predicates:
-            - Path=/api/v1/loans/**
-          filters:
-            - RewritePath=/api/v1/loans/(?<segment>.*), /api/v1/loans/${segment}
-        
+            - Path=/api/v1/loans,/api/v1/loans/**
+
         # MS-CLIENTS (Épica 3: Gestión de Clientes)
         - id: ms-clients
           uri: lb://MS-CLIENTS
           predicates:
-            - Path=/api/v1/clients/**
-          filters:
-            - RewritePath=/api/v1/clients/(?<segment>.*), /api/v1/clients/${segment}
-        
+            - Path=/api/v1/clients,/api/v1/clients/**
+
         # MS-CONFIG (Épica 4: Gestión de Tarifas)
         - id: ms-config
           uri: lb://MS-CONFIG
           predicates:
-            - Path=/api/v1/config/**
-          filters:
-            - RewritePath=/api/v1/config/(?<segment>.*), /api/v1/config/${segment}
-        
+            - Path=/api/v1/config,/api/v1/config/**
+
         # MS-KARDEX (Épica 5: Kardex y Movimientos)
         - id: ms-kardex
           uri: lb://MS-KARDEX
           predicates:
-            - Path=/api/v1/kardex/**
-          filters:
-            - RewritePath=/api/v1/kardex/(?<segment>.*), /api/v1/kardex/${segment}
-        
+            - Path=/api/v1/kardex,/api/v1/kardex/**
+
         # MS-REPORTS (Épica 6: Reportes y Consultas)
         - id: ms-reports
           uri: lb://MS-REPORTS
           predicates:
-            - Path=/api/v1/reports/**
-          filters:
-            - RewritePath=/api/v1/reports/(?<segment>.*), /api/v1/reports/${segment}
-        
+            - Path=/api/v1/reports,/api/v1/reports/**
+
         # MS-USERS (Épica 7: Usuarios y Roles)
         - id: ms-users
           uri: lb://MS-USERS
           predicates:
-            - Path=/api/v1/users/**
-          filters:
-            - RewritePath=/api/v1/users/(?<segment>.*), /api/v1/users/${segment}
+            - Path=/api/v1/users,/api/v1/users/**
 
         # MS-USERS Auth endpoint (separado para manejar correctamente)
         - id: ms-users-auth
           uri: lb://MS-USERS
           predicates:
-            - Path=/api/v1/auth/**
-          filters:
-            - RewritePath=/api/v1/auth/(?<segment>.*), /api/v1/auth/${segment}
+            - Path=/api/v1/auth,/api/v1/auth/**
 
       # Configuración global
       default-filters:
