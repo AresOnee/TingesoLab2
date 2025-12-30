@@ -14,6 +14,9 @@ import org.springframework.security.oauth2.server.resource.authentication.Reacti
 import org.springframework.security.web.server.SecurityWebFilterChain;
 import reactor.core.publisher.Mono;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -127,15 +130,24 @@ public class SecurityConfig {
      */
     static class KeycloakRoleConverter implements Converter<Jwt, Collection<GrantedAuthority>> {
 
+        private static final Logger log = LoggerFactory.getLogger(KeycloakRoleConverter.class);
+
         @Override
         @SuppressWarnings("unchecked")
         public Collection<GrantedAuthority> convert(Jwt jwt) {
             List<GrantedAuthority> authorities = new ArrayList<>();
 
+            log.info("=== JWT ROLE EXTRACTION DEBUG ===");
+            log.info("JWT Subject: {}", jwt.getSubject());
+            log.info("JWT Claims: {}", jwt.getClaims().keySet());
+
             // 1. Extraer roles de realm_access.roles (roles globales del realm)
             Map<String, Object> realmAccess = jwt.getClaim("realm_access");
+            log.info("realm_access claim: {}", realmAccess);
+
             if (realmAccess != null && realmAccess.containsKey("roles")) {
                 List<String> realmRoles = (List<String>) realmAccess.get("roles");
+                log.info("Realm roles found: {}", realmRoles);
                 if (realmRoles != null) {
                     authorities.addAll(
                         realmRoles.stream()
@@ -147,6 +159,8 @@ public class SecurityConfig {
 
             // 2. Extraer roles de resource_access.[client].roles (roles del cliente)
             Map<String, Object> resourceAccess = jwt.getClaim("resource_access");
+            log.info("resource_access claim: {}", resourceAccess);
+
             if (resourceAccess != null) {
                 // Buscar roles en cualquier cliente configurado
                 for (Object clientData : resourceAccess.values()) {
@@ -154,6 +168,7 @@ public class SecurityConfig {
                         Map<String, Object> clientMap = (Map<String, Object>) clientData;
                         if (clientMap.containsKey("roles")) {
                             List<String> clientRoles = (List<String>) clientMap.get("roles");
+                            log.info("Client roles found: {}", clientRoles);
                             if (clientRoles != null) {
                                 authorities.addAll(
                                     clientRoles.stream()
@@ -165,6 +180,9 @@ public class SecurityConfig {
                     }
                 }
             }
+
+            log.info("Final authorities: {}", authorities);
+            log.info("=== END JWT DEBUG ===");
 
             return authorities;
         }
