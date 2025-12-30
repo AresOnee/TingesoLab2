@@ -23,18 +23,18 @@ public class KardexController {
 
     /**
      * Obtener todos los movimientos
-     * GET /api/v1/kardex/
+     * GET /api/v1/kardex
      */
-    @GetMapping("/")
+    @GetMapping("")
     public ResponseEntity<List<KardexEntity>> getAllMovements() {
         return ResponseEntity.ok(kardexService.getAllMovements());
     }
 
     /**
      * RF5.1: Registrar movimiento en kardex
-     * POST /api/v1/kardex/
+     * POST /api/v1/kardex
      */
-    @PostMapping("/")
+    @PostMapping("")
     public ResponseEntity<KardexEntity> registerMovement(@RequestBody Map<String, Object> body) {
         Long toolId = Long.valueOf(body.get("toolId").toString());
         String toolName = body.getOrDefault("toolName", "").toString();

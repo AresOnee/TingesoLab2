@@ -19,9 +19,9 @@ public class UserController {
 
     /**
      * Obtener todos los usuarios
-     * GET /api/v1/users/
+     * GET /api/v1/users
      */
-    @GetMapping("/")
+    @GetMapping("")
     public ResponseEntity<List<UserEntity>> getAllUsers() {
         return ResponseEntity.ok(userService.getAllUsers());
     }
@@ -46,9 +46,9 @@ public class UserController {
 
     /**
      * Crear usuario
-     * POST /api/v1/users/
+     * POST /api/v1/users
      */
-    @PostMapping("/")
+    @PostMapping("")
     public ResponseEntity<UserEntity> createUser(@RequestBody UserEntity user) {
         UserEntity created = userService.createUser(user);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);

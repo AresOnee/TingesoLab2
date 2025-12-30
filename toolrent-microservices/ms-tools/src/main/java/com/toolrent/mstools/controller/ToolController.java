@@ -19,9 +19,9 @@ public class ToolController {
 
     /**
      * Obtener todas las herramientas
-     * GET /api/v1/tools/
+     * GET /api/v1/tools
      */
-    @GetMapping("/")
+    @GetMapping("")
     public ResponseEntity<List<ToolEntity>> getAllTools() {
         return ResponseEntity.ok(toolService.getAllTools());
     }
@@ -37,9 +37,9 @@ public class ToolController {
 
     /**
      * RF1.1: Registrar nueva herramienta
-     * POST /api/v1/tools/
+     * POST /api/v1/tools
      */
-    @PostMapping("/")
+    @PostMapping("")
     public ResponseEntity<ToolEntity> createTool(@RequestBody ToolEntity tool) {
         ToolEntity created = toolService.createTool(tool);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);

@@ -20,9 +20,9 @@ public class LoanController {
 
     /**
      * Obtener todos los préstamos
-     * GET /api/v1/loans/
+     * GET /api/v1/loans
      */
-    @GetMapping("/")
+    @GetMapping("")
     public ResponseEntity<List<LoanEntity>> getAllLoans() {
         return ResponseEntity.ok(loanService.getAllLoans());
     }
@@ -53,9 +53,9 @@ public class LoanController {
 
     /**
      * RF2.1: Crear préstamo (alternativa con body JSON)
-     * POST /api/v1/loans/
+     * POST /api/v1/loans
      */
-    @PostMapping("/")
+    @PostMapping("")
     public ResponseEntity<LoanEntity> createLoanJson(@RequestBody Map<String, Object> body) {
         Long clientId = Long.valueOf(body.get("clientId").toString());
         Long toolId = Long.valueOf(body.get("toolId").toString());
