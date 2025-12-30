@@ -53,21 +53,21 @@ public class SecurityConfig {
 
                 // ============ MS-TOOLS (Herramientas) ============
                 // GET: USER y ADMIN pueden consultar
-                .pathMatchers(HttpMethod.GET, "/api/v1/tools/**").hasAnyRole("USER", "ADMIN")
+                .pathMatchers(HttpMethod.GET, "/api/v1/tools", "/api/v1/tools/**").hasAnyRole("USER", "ADMIN")
                 // POST: Solo ADMIN puede crear herramientas
-                .pathMatchers(HttpMethod.POST, "/api/v1/tools/**").hasRole("ADMIN")
+                .pathMatchers(HttpMethod.POST, "/api/v1/tools", "/api/v1/tools/**").hasRole("ADMIN")
                 // PUT: Solo ADMIN puede dar de baja herramientas
-                .pathMatchers(HttpMethod.PUT, "/api/v1/tools/**").hasRole("ADMIN")
-                .pathMatchers(HttpMethod.PATCH, "/api/v1/tools/**").hasRole("ADMIN")
-                .pathMatchers(HttpMethod.DELETE, "/api/v1/tools/**").hasRole("ADMIN")
+                .pathMatchers(HttpMethod.PUT, "/api/v1/tools", "/api/v1/tools/**").hasRole("ADMIN")
+                .pathMatchers(HttpMethod.PATCH, "/api/v1/tools", "/api/v1/tools/**").hasRole("ADMIN")
+                .pathMatchers(HttpMethod.DELETE, "/api/v1/tools", "/api/v1/tools/**").hasRole("ADMIN")
 
                 // ============ MS-CLIENTS (Clientes) ============
                 // GET: USER y ADMIN pueden consultar
-                .pathMatchers(HttpMethod.GET, "/api/v1/clients/**").hasAnyRole("USER", "ADMIN")
+                .pathMatchers(HttpMethod.GET, "/api/v1/clients", "/api/v1/clients/**").hasAnyRole("USER", "ADMIN")
                 // POST/PUT: Solo ADMIN puede crear/modificar clientes
-                .pathMatchers(HttpMethod.POST, "/api/v1/clients/**").hasRole("ADMIN")
-                .pathMatchers(HttpMethod.PUT, "/api/v1/clients/**").hasRole("ADMIN")
-                .pathMatchers(HttpMethod.DELETE, "/api/v1/clients/**").hasRole("ADMIN")
+                .pathMatchers(HttpMethod.POST, "/api/v1/clients", "/api/v1/clients/**").hasRole("ADMIN")
+                .pathMatchers(HttpMethod.PUT, "/api/v1/clients", "/api/v1/clients/**").hasRole("ADMIN")
+                .pathMatchers(HttpMethod.DELETE, "/api/v1/clients", "/api/v1/clients/**").hasRole("ADMIN")
 
                 // ============ MS-CONFIG (Configuraciones/Tarifas) ============
                 // GET: USER y ADMIN pueden ver configuraciones (con y sin trailing slash)
@@ -79,7 +79,7 @@ public class SecurityConfig {
 
                 // ============ MS-LOANS (Prestamos) ============
                 // USER y ADMIN pueden crear prestamos y registrar devoluciones
-                .pathMatchers("/api/v1/loans/**").hasAnyRole("USER", "ADMIN")
+                .pathMatchers("/api/v1/loans", "/api/v1/loans/**").hasAnyRole("USER", "ADMIN")
 
                 // ============ MS-KARDEX (Movimientos) ============
                 // USER y ADMIN pueden consultar kardex (con y sin trailing slash)
@@ -91,11 +91,11 @@ public class SecurityConfig {
 
                 // ============ MS-REPORTS (Reportes) ============
                 // USER y ADMIN pueden ver reportes
-                .pathMatchers("/api/v1/reports/**").hasAnyRole("USER", "ADMIN")
+                .pathMatchers("/api/v1/reports", "/api/v1/reports/**").hasAnyRole("USER", "ADMIN")
 
                 // ============ MS-USERS (si se mantiene) ============
-                .pathMatchers("/api/v1/users/**").hasAnyRole("USER", "ADMIN")
-                .pathMatchers("/api/v1/auth/**").permitAll()
+                .pathMatchers("/api/v1/users", "/api/v1/users/**").hasAnyRole("USER", "ADMIN")
+                .pathMatchers("/api/v1/auth", "/api/v1/auth/**").permitAll()
 
                 // Cualquier otra peticion requiere autenticacion
                 .anyExchange().authenticated()
