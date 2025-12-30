@@ -18,9 +18,9 @@ public class ConfigController {
 
     /**
      * Obtener todas las configuraciones
-     * GET /api/v1/config/
+     * GET /api/v1/config
      */
-    @GetMapping("/")
+    @GetMapping("")
     public ResponseEntity<List<ConfigEntity>> getAllConfigs() {
         return ResponseEntity.ok(configService.getAllConfigs());
     }

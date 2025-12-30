@@ -19,9 +19,9 @@ public class ClientController {
 
     /**
      * Obtener todos los clientes
-     * GET /api/v1/clients/
+     * GET /api/v1/clients
      */
-    @GetMapping("/")
+    @GetMapping("")
     public ResponseEntity<List<ClientEntity>> getAllClients() {
         return ResponseEntity.ok(clientService.getAllClients());
     }
@@ -46,9 +46,9 @@ public class ClientController {
 
     /**
      * RF3.1: Crear nuevo cliente
-     * POST /api/v1/clients/
+     * POST /api/v1/clients
      */
-    @PostMapping("/")
+    @PostMapping("")
     public ResponseEntity<ClientEntity> createClient(@RequestBody ClientEntity client) {
         ClientEntity created = clientService.createClient(client);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
