@@ -31,8 +31,9 @@ ReactDOM.createRoot(document.getElementById("root")).render(
     authClient={keycloak}
     initOptions={{
       onLoad: "login-required",
-      pkceMethod: "S256",
       checkLoginIframe: false,
+      // PKCE deshabilitado para permitir HTTP con IP (no localhost)
+      // pkceMethod: "S256",
     }}
     LoadingComponent={<LoadingComponent />}
     onEvent={(event, error) => {
