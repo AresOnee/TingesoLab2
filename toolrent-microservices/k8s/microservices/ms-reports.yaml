@@ -21,8 +21,8 @@ spec:
           env:
             - name: SERVER_PORT
               value: "8080"
-            - name: EUREKA_CLIENT_ENABLED
-              value: "false"
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              value: "http://eureka-server:8761/eureka/"
           resources:
             requests:
               memory: "256Mi"
