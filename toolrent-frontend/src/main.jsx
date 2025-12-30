@@ -32,8 +32,8 @@ ReactDOM.createRoot(document.getElementById("root")).render(
     initOptions={{
       onLoad: "login-required",
       checkLoginIframe: false,
-      // PKCE deshabilitado - string vacío para deshabilitar completamente
-      pkceMethod: "",
+      // PKCE deshabilitado - false para deshabilitar completamente
+      pkceMethod: false,
       enableLogging: true,
     }}
     LoadingComponent={<LoadingComponent />}
