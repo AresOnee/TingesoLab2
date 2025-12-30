@@ -12,12 +12,16 @@ import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.oauth2.server.resource.authentication.ReactiveJwtAuthenticationConverterAdapter;
 import org.springframework.security.web.server.SecurityWebFilterChain;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.reactive.CorsConfigurationSource;
+import org.springframework.web.cors.reactive.UrlBasedCorsConfigurationSource;
 import reactor.core.publisher.Mono;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
@@ -38,6 +42,9 @@ public class SecurityConfig {
     @Bean
     public SecurityWebFilterChain securityWebFilterChain(ServerHttpSecurity http) {
         http
+            // Habilitar CORS con configuracion personalizada
+            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+
             // Deshabilitar CSRF para APIs REST (stateless)
             .csrf(csrf -> csrf.disable())
 
@@ -186,5 +193,39 @@ public class SecurityConfig {
 
             return authorities;
         }
+    }
+
+    /**
+     * Configuracion CORS para permitir acceso desde IPs privadas (minikube, etc.)
+     */
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration configuration = new CorsConfiguration();
+
+        // Permitir origenes con patrones (IPs privadas, localhost, etc.)
+        configuration.setAllowedOriginPatterns(Arrays.asList(
+            "http://localhost:*",
+            "http://127.0.0.1:*",
+            "http://172.*:*",
+            "http://192.168.*:*",
+            "http://10.*:*",
+            "http://frontend:*"
+        ));
+
+        // Metodos HTTP permitidos
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
+
+        // Headers permitidos
+        configuration.setAllowedHeaders(Arrays.asList("*"));
+
+        // Permitir credenciales (cookies, authorization headers)
+        configuration.setAllowCredentials(true);
+
+        // Tiempo de cache para preflight
+        configuration.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", configuration);
+        return source;
     }
 }
