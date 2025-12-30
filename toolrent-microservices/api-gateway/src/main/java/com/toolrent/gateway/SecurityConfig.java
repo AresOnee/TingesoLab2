@@ -70,24 +70,24 @@ public class SecurityConfig {
                 .pathMatchers(HttpMethod.DELETE, "/api/v1/clients/**").hasRole("ADMIN")
 
                 // ============ MS-CONFIG (Configuraciones/Tarifas) ============
-                // GET: USER y ADMIN pueden ver configuraciones
-                .pathMatchers(HttpMethod.GET, "/api/v1/config/**").hasAnyRole("USER", "ADMIN")
+                // GET: USER y ADMIN pueden ver configuraciones (con y sin trailing slash)
+                .pathMatchers(HttpMethod.GET, "/api/v1/config", "/api/v1/config/**").hasAnyRole("USER", "ADMIN")
                 // PUT: Solo ADMIN puede modificar tarifas
-                .pathMatchers(HttpMethod.PUT, "/api/v1/config/**").hasRole("ADMIN")
-                .pathMatchers(HttpMethod.POST, "/api/v1/config/**").hasRole("ADMIN")
-                .pathMatchers(HttpMethod.DELETE, "/api/v1/config/**").hasRole("ADMIN")
+                .pathMatchers(HttpMethod.PUT, "/api/v1/config", "/api/v1/config/**").hasRole("ADMIN")
+                .pathMatchers(HttpMethod.POST, "/api/v1/config", "/api/v1/config/**").hasRole("ADMIN")
+                .pathMatchers(HttpMethod.DELETE, "/api/v1/config", "/api/v1/config/**").hasRole("ADMIN")
 
                 // ============ MS-LOANS (Prestamos) ============
                 // USER y ADMIN pueden crear prestamos y registrar devoluciones
                 .pathMatchers("/api/v1/loans/**").hasAnyRole("USER", "ADMIN")
 
                 // ============ MS-KARDEX (Movimientos) ============
-                // USER y ADMIN pueden consultar kardex
-                .pathMatchers(HttpMethod.GET, "/api/v1/kardex/**").hasAnyRole("USER", "ADMIN")
+                // USER y ADMIN pueden consultar kardex (con y sin trailing slash)
+                .pathMatchers(HttpMethod.GET, "/api/v1/kardex", "/api/v1/kardex/**").hasAnyRole("USER", "ADMIN")
                 // Solo ADMIN puede crear movimientos directamente (normalmente se crean via loans)
-                .pathMatchers(HttpMethod.POST, "/api/v1/kardex/**").hasRole("ADMIN")
-                .pathMatchers(HttpMethod.PUT, "/api/v1/kardex/**").hasRole("ADMIN")
-                .pathMatchers(HttpMethod.DELETE, "/api/v1/kardex/**").hasRole("ADMIN")
+                .pathMatchers(HttpMethod.POST, "/api/v1/kardex", "/api/v1/kardex/**").hasRole("ADMIN")
+                .pathMatchers(HttpMethod.PUT, "/api/v1/kardex", "/api/v1/kardex/**").hasRole("ADMIN")
+                .pathMatchers(HttpMethod.DELETE, "/api/v1/kardex", "/api/v1/kardex/**").hasRole("ADMIN")
 
                 // ============ MS-REPORTS (Reportes) ============
                 // USER y ADMIN pueden ver reportes
