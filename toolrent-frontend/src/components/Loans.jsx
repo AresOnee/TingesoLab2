@@ -145,9 +145,9 @@ export default function Loans() {
     try {
       setLoading(true);
       const [cRes, tRes, lRes] = await Promise.all([
-        http.get("/api/v1/clients/"),
-        http.get("/api/v1/tools/"),
-        http.get("/api/v1/loans/"),
+        http.get("/api/v1/clients"),
+        http.get("/api/v1/tools"),
+        http.get("/api/v1/loans"),
       ]);
 
       const clientsData = Array.isArray(cRes.data) ? cRes.data : (cRes.data?.content ?? []);

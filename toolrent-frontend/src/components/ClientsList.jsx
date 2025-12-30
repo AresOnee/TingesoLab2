@@ -71,7 +71,7 @@ export default function ClientsList() {
     try {
       setLoading(true)
       setError('')
-      const response = await http.get('/api/v1/clients/')
+      const response = await http.get('/api/v1/clients')
       setClients(response.data)
     } catch (e) {
       console.error(e)
