@@ -70,6 +70,15 @@ public class LoanService {
                             client.getName(), client.getState()));
         }
 
+        // 2.1 Validar límite de 5 préstamos activos por cliente
+        long activeLoanCount = loanRepository.countActiveByClientId(clientId);
+        if (activeLoanCount >= 5) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    String.format("El cliente '%s' ya tiene %d préstamos activos. El máximo permitido es 5.",
+                            client.getName(), activeLoanCount));
+        }
+        log.info("Cliente {} tiene {} préstamos activos", client.getName(), activeLoanCount);
+
         // 3. Obtener datos de la herramienta desde ms-tools
         ToolDTO tool = getTool(toolId);
         log.info("Herramienta obtenida: {} - Stock: {} - Estado: {}", tool.getName(), tool.getStock(), tool.getStatus());
