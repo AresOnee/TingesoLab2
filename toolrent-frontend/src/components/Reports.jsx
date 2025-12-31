@@ -287,8 +287,8 @@ export default function Reports() {
                         activeLoans.map((loan) => (
                           <TableRow key={loan.id}>
                             <TableCell>{loan.id}</TableCell>
-                            <TableCell>{loan.client?.name || '-'}</TableCell>
-                            <TableCell>{loan.tool?.name || '-'}</TableCell>
+                            <TableCell>{loan.clientName || loan.client?.name || '-'}</TableCell>
+                            <TableCell>{loan.toolName || loan.tool?.name || '-'}</TableCell>
                             <TableCell>{formatDate(loan.startDate)}</TableCell>
                             <TableCell>{formatDate(loan.dueDate)}</TableCell>
                             <TableCell>

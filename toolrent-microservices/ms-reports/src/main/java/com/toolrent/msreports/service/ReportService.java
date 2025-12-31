@@ -86,7 +86,7 @@ public class ReportService {
     public List<ToolRankingDTO> getMostLoanedTools(int limit) {
         try {
             // Obtener todos los préstamos
-            String url = MS_LOANS_URL + "/api/v1/loans/";
+            String url = MS_LOANS_URL + "/api/v1/loans";
             ResponseEntity<List<LoanDTO>> response = restTemplate.exchange(
                     url,
                     HttpMethod.GET,
