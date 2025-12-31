@@ -57,9 +57,17 @@ export default function ToolsList() {
   const [selectedTool, setSelectedTool] = useState(null)
 
   const isAuthenticated = useMemo(() => keycloak?.authenticated, [keycloak?.authenticated])
-  const isAdmin = useMemo(() => 
+  const isAdmin = useMemo(() =>
     keycloak?.hasRealmRole?.('ADMIN') || keycloak?.hasRealmRole?.('admin'),
     [keycloak]
+  )
+
+  // Obtener username de Keycloak para registrar en Kardex
+  const username = useMemo(() =>
+    keycloak?.tokenParsed?.preferred_username ||
+    keycloak?.tokenParsed?.name ||
+    'system',
+    [keycloak?.tokenParsed]
   )
 
   useEffect(() => {
@@ -145,7 +153,7 @@ export default function ToolsList() {
         status: form.status,
         replacementValue,
         stock,
-      })
+      }, username)
 
       setForm({ ...emptyForm })
       setSuccessMsg('✅ Herramienta creada exitosamente')
@@ -177,9 +185,9 @@ export default function ToolsList() {
       setLoading(true)
       setError('')
       setSuccessMsg('')
-      
-      await toolService.decommission(selectedTool.id)
-      
+
+      await toolService.decommission(selectedTool.id, username)
+
       setSuccessMsg(`✅ Herramienta "${selectedTool.name}" dada de baja`)
       setTimeout(() => setSuccessMsg(''), 3000)
       handleCloseDialog()
