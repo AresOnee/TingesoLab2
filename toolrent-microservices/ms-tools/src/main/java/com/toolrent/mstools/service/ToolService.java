@@ -3,21 +3,34 @@ package com.toolrent.mstools.service;
 import com.toolrent.mstools.entity.ToolEntity;
 import com.toolrent.mstools.repository.ToolRepository;
 import jakarta.transaction.Transactional;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 import org.springframework.web.server.ResponseStatusException;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 @Service
 @Transactional
 public class ToolService {
 
+    private static final Logger log = LoggerFactory.getLogger(ToolService.class);
+
     @Autowired
     private ToolRepository toolRepository;
+
+    @Autowired
+    private RestTemplate restTemplate;
+
+    // URL de ms-kardex (usando nombre de Eureka)
+    private static final String MS_KARDEX_URL = "http://ms-kardex";
 
     /**
      * Obtener todas las herramientas
@@ -37,8 +50,9 @@ public class ToolService {
 
     /**
      * RF1.1: Registrar nuevas herramientas
+     * RF5.1: Registrar automáticamente en kardex
      */
-    public ToolEntity createTool(ToolEntity tool) {
+    public ToolEntity createTool(ToolEntity tool, String username) {
         String name = Optional.ofNullable(tool.getName()).orElse("").trim();
         if (name.isBlank()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "El nombre es obligatorio");
@@ -53,7 +67,22 @@ public class ToolService {
             tool.setStatus("Disponible");
         }
 
-        return toolRepository.save(tool);
+        // Guardar herramienta
+        ToolEntity saved = toolRepository.save(tool);
+        log.info("Herramienta creada: {} con ID: {}", saved.getName(), saved.getId());
+
+        // RF5.1: Registrar movimiento en kardex
+        registerKardexMovement(
+                saved.getId(),
+                saved.getName(),
+                "REGISTRO",
+                saved.getStock(),
+                username,
+                "Alta de herramienta: " + saved.getName(),
+                null
+        );
+
+        return saved;
     }
 
     /**
@@ -92,8 +121,9 @@ public class ToolService {
 
     /**
      * RF1.2: Dar de baja herramientas dañadas o en desuso
+     * RF5.1: Registrar automáticamente en kardex
      */
-    public ToolEntity decommissionTool(Long id) {
+    public ToolEntity decommissionTool(Long id, String username) {
         ToolEntity tool = getToolById(id);
 
         if ("Baja".equalsIgnoreCase(tool.getStatus())) {
@@ -106,9 +136,27 @@ public class ToolService {
                     "No se puede dar de baja una herramienta que está prestada");
         }
 
+        // Guardar stock anterior para el kardex
+        int stockAnterior = tool.getStock();
+
+        // Dar de baja
         tool.setStatus("Baja");
         tool.setStock(0);
-        return toolRepository.save(tool);
+        ToolEntity saved = toolRepository.save(tool);
+        log.info("Herramienta dada de baja: {} con ID: {}", saved.getName(), saved.getId());
+
+        // RF5.1: Registrar baja en kardex
+        registerKardexMovement(
+                saved.getId(),
+                saved.getName(),
+                "BAJA",
+                -stockAnterior,
+                username,
+                "Baja de herramienta: " + saved.getName(),
+                null
+        );
+
+        return saved;
     }
 
     /**
@@ -165,5 +213,30 @@ public class ToolService {
         }
 
         toolRepository.delete(tool);
+    }
+
+    // ==================== COMUNICACIÓN CON MS-KARDEX ====================
+
+    /**
+     * Registrar movimiento en el kardex vía HTTP
+     */
+    private void registerKardexMovement(Long toolId, String toolName, String type, int quantity,
+                                        String username, String observations, Long loanId) {
+        try {
+            String url = MS_KARDEX_URL + "/api/v1/kardex";
+            Map<String, Object> body = new HashMap<>();
+            body.put("toolId", toolId);
+            body.put("toolName", toolName);
+            body.put("movementType", type);
+            body.put("quantity", quantity);
+            body.put("username", username != null ? username : "system");
+            body.put("observations", observations);
+            body.put("loanId", loanId);
+            restTemplate.postForObject(url, body, Object.class);
+            log.info("Movimiento de kardex registrado: {} para herramienta {}", type, toolName);
+        } catch (Exception e) {
+            log.error("Error al registrar movimiento en kardex: {}", e.getMessage());
+            // No lanzamos excepción para no afectar la operación principal
+        }
     }
 }
