@@ -1,0 +1,186 @@
+# =====================================================
+# KEYCLOAK REALM CONFIGMAP
+# =====================================================
+# Este ConfigMap contiene la configuración del realm
+# que se importa automáticamente al iniciar Keycloak
+#
+# Para actualizar:
+# 1. Exporta el realm desde Keycloak Admin Console o CLI
+# 2. Reemplaza el contenido de sisgr-realm.json
+# 3. Aplica: kubectl apply -f keycloak-realm-configmap.yaml -n toolrent
+# 4. Reinicia: kubectl rollout restart deployment/keycloak -n toolrent
+# =====================================================
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: keycloak-realm
+  namespace: toolrent
+  labels:
+    app: keycloak
+data:
+  sisgr-realm.json: |
+    {
+      "realm": "sisgr-realm",
+      "enabled": true,
+      "sslRequired": "external",
+      "registrationAllowed": false,
+      "loginWithEmailAllowed": true,
+      "duplicateEmailsAllowed": false,
+      "resetPasswordAllowed": false,
+      "editUsernameAllowed": false,
+      "bruteForceProtected": false,
+      "roles": {
+        "realm": [
+          {
+            "name": "ADMIN",
+            "description": "Administrador - acceso total al sistema"
+          },
+          {
+            "name": "USER",
+            "description": "Usuario/Empleado - acceso a préstamos y reportes"
+          }
+        ]
+      },
+      "users": [
+        {
+          "username": "admin",
+          "enabled": true,
+          "emailVerified": true,
+          "firstName": "Admin",
+          "lastName": "ToolRent",
+          "email": "admin@toolrent.cl",
+          "credentials": [
+            {
+              "type": "password",
+              "value": "admin123",
+              "temporary": false
+            }
+          ],
+          "realmRoles": ["ADMIN", "USER"]
+        },
+        {
+          "username": "juan",
+          "enabled": true,
+          "emailVerified": true,
+          "firstName": "Juan",
+          "lastName": "Pérez",
+          "email": "juan@toolrent.cl",
+          "credentials": [
+            {
+              "type": "password",
+              "value": "juan123",
+              "temporary": false
+            }
+          ],
+          "realmRoles": ["USER"]
+        },
+        {
+          "username": "empleado",
+          "enabled": true,
+          "emailVerified": true,
+          "firstName": "Empleado",
+          "lastName": "Test",
+          "email": "empleado@toolrent.cl",
+          "credentials": [
+            {
+              "type": "password",
+              "value": "empleado123",
+              "temporary": false
+            }
+          ],
+          "realmRoles": ["USER"]
+        }
+      ],
+      "clients": [
+        {
+          "clientId": "sisgr-frontend",
+          "name": "ToolRent Frontend",
+          "enabled": true,
+          "publicClient": true,
+          "directAccessGrantsEnabled": true,
+          "standardFlowEnabled": true,
+          "implicitFlowEnabled": false,
+          "rootUrl": "",
+          "baseUrl": "",
+          "redirectUris": [
+            "http://localhost:5173/*",
+            "http://localhost:3000/*",
+            "http://192.168.1.89:30000/*",
+            "http://192.168.1.89/*"
+          ],
+          "webOrigins": [
+            "http://localhost:5173",
+            "http://localhost:3000",
+            "http://192.168.1.89:30000",
+            "http://192.168.1.89",
+            "+"
+          ],
+          "protocol": "openid-connect",
+          "attributes": {
+            "pkce.code.challenge.method": "",
+            "post.logout.redirect.uris": "+"
+          },
+          "defaultClientScopes": [
+            "web-origins",
+            "acr",
+            "profile",
+            "roles",
+            "email"
+          ],
+          "optionalClientScopes": [
+            "address",
+            "phone",
+            "offline_access",
+            "microprofile-jwt"
+          ]
+        },
+        {
+          "clientId": "sisgr-backend",
+          "name": "ToolRent Backend Services",
+          "enabled": true,
+          "publicClient": false,
+          "bearerOnly": true,
+          "standardFlowEnabled": false,
+          "implicitFlowEnabled": false,
+          "directAccessGrantsEnabled": false,
+          "serviceAccountsEnabled": false,
+          "protocol": "openid-connect"
+        }
+      ],
+      "clientScopes": [
+        {
+          "name": "roles",
+          "protocol": "openid-connect",
+          "attributes": {
+            "include.in.token.scope": "true",
+            "display.on.consent.screen": "true"
+          },
+          "protocolMappers": [
+            {
+              "name": "realm roles",
+              "protocol": "openid-connect",
+              "protocolMapper": "oidc-usermodel-realm-role-mapper",
+              "consentRequired": false,
+              "config": {
+                "multivalued": "true",
+                "user.attribute": "foo",
+                "id.token.claim": "true",
+                "access.token.claim": "true",
+                "claim.name": "realm_access.roles",
+                "jsonType.label": "String"
+              }
+            }
+          ]
+        }
+      ],
+      "browserSecurityHeaders": {
+        "contentSecurityPolicyReportOnly": "",
+        "xContentTypeOptions": "nosniff",
+        "referrerPolicy": "no-referrer",
+        "xRobotsTag": "none",
+        "xFrameOptions": "SAMEORIGIN",
+        "contentSecurityPolicy": "frame-src 'self'; frame-ancestors 'self'; object-src 'none';",
+        "xXSSProtection": "1; mode=block",
+        "strictTransportSecurity": "max-age=31536000; includeSubDomains"
+      }
+    }
