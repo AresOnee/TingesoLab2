@@ -37,11 +37,14 @@ public class ToolController {
 
     /**
      * RF1.1: Registrar nueva herramienta
+     * RF5.1: Registrar automáticamente en kardex
      * POST /api/v1/tools
      */
     @PostMapping("")
-    public ResponseEntity<ToolEntity> createTool(@RequestBody ToolEntity tool) {
-        ToolEntity created = toolService.createTool(tool);
+    public ResponseEntity<ToolEntity> createTool(
+            @RequestBody ToolEntity tool,
+            @RequestHeader(value = "X-Username", required = false, defaultValue = "system") String username) {
+        ToolEntity created = toolService.createTool(tool, username);
         return ResponseEntity.status(HttpStatus.CREATED).body(created);
     }
 
@@ -58,11 +61,14 @@ public class ToolController {
 
     /**
      * RF1.2: Dar de baja herramienta
+     * RF5.1: Registrar automáticamente en kardex
      * PUT /api/v1/tools/{id}/decommission
      */
     @PutMapping("/{id}/decommission")
-    public ResponseEntity<ToolEntity> decommissionTool(@PathVariable Long id) {
-        return ResponseEntity.ok(toolService.decommissionTool(id));
+    public ResponseEntity<ToolEntity> decommissionTool(
+            @PathVariable Long id,
+            @RequestHeader(value = "X-Username", required = false, defaultValue = "system") String username) {
+        return ResponseEntity.ok(toolService.decommissionTool(id, username));
     }
 
     /**
