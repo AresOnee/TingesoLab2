@@ -2,12 +2,12 @@
 import http from '../http-common'
 
 const getAll = async () => {
-  const { data } = await http.get('/api/v1/tools/')
+  const { data } = await http.get('/api/v1/tools')
   return Array.isArray(data) ? data : (data?.content ?? [])
 }
 
 const create = (body) => {
-  return http.post('/api/v1/tools/', body)
+  return http.post('/api/v1/tools', body)
 }
 
 /**
