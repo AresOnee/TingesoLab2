@@ -6,16 +6,29 @@ const getAll = async () => {
   return Array.isArray(data) ? data : (data?.content ?? [])
 }
 
-const create = (body) => {
-  return http.post('/api/v1/tools', body)
+/**
+ * RF1.1: Crear nueva herramienta
+ * Envía X-Username para registrar en Kardex quién creó la herramienta
+ */
+const create = (body, username) => {
+  return http.post('/api/v1/tools', body, {
+    headers: {
+      'X-Username': username || 'system'
+    }
+  })
 }
 
 /**
  * RF1.2: Dar de baja herramientas (solo Admin)
  * PUT /api/v1/tools/{id}/decommission
+ * Envía X-Username para registrar en Kardex quién dio de baja
  */
-const decommission = async (toolId) => {
-  const { data } = await http.put(`/api/v1/tools/${toolId}/decommission`)
+const decommission = async (toolId, username) => {
+  const { data } = await http.put(`/api/v1/tools/${toolId}/decommission`, null, {
+    headers: {
+      'X-Username': username || 'system'
+    }
+  })
   return data
 }
 
