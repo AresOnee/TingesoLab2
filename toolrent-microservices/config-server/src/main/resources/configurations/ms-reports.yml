@@ -16,3 +16,13 @@ eureka:
   instance:
     prefer-ip-address: true
     instance-id: ${spring.application.name}:${random.uuid}
+
+# Actuator endpoints para health checks
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
