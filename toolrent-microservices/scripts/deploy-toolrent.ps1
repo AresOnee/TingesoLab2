@@ -2,16 +2,18 @@
 # TOOLRENT - SCRIPT COMPLETO DE DESPLIEGUE EN MINIKUBE (Windows PowerShell)
 # ============================================================================
 # Autor: ToolRent Team
-# Descripcion: Despliega toda la aplicacion ToolRent en un cluster Minikube
-# Uso: .\deploy-toolrent.ps1 [-SkipMinikubeStart] [-CleanDeploy]
+# Descripcion: Compila, construye imagenes Docker y despliega en Minikube
+# Uso: .\deploy-toolrent.ps1 [-SkipBuild] [-SkipMinikubeStart] [-CleanDeploy]
 # ============================================================================
 
 param(
+    [switch]$SkipBuild,            # Saltar compilacion y construccion de imagenes
     [switch]$SkipMinikubeStart,    # Saltar inicio de Minikube si ya esta corriendo
     [switch]$CleanDeploy,          # Eliminar namespace existente antes de desplegar
     [switch]$SkipWait,             # No esperar a que los pods esten listos
     [int]$MinikubeMemory = 12288,  # Memoria para Minikube en MB (12GB)
-    [int]$MinikubeCPUs = 6         # CPUs para Minikube
+    [int]$MinikubeCPUs = 6,        # CPUs para Minikube
+    [string]$DockerUser = "fergusone"  # Usuario de Docker Hub
 )
 
 # ============================================================================
@@ -19,7 +21,12 @@ param(
 # ============================================================================
 $NAMESPACE = "toolrent"
 $SCRIPT_DIR = Split-Path -Parent $MyInvocation.MyCommand.Path
-$K8S_DIR = Join-Path (Split-Path -Parent $SCRIPT_DIR) "k8s"
+$PROJECT_DIR = Split-Path -Parent $SCRIPT_DIR
+$K8S_DIR = Join-Path $PROJECT_DIR "k8s"
+
+# Lista de proyectos a compilar y construir
+$INFRA_PROJECTS = @("config-server", "eureka-server", "api-gateway")
+$MS_PROJECTS = @("ms-tools", "ms-clients", "ms-config", "ms-loans", "ms-kardex", "ms-reports", "ms-users")
 
 # Colores para output
 function Write-Color {
@@ -59,11 +66,14 @@ function Write-Info {
 # VERIFICACION DE PREREQUISITOS
 # ============================================================================
 Write-Header "TOOLRENT - DESPLIEGUE EN MINIKUBE"
+Write-Host "Directorio proyecto: $PROJECT_DIR" -ForegroundColor Gray
 Write-Host "Directorio K8s: $K8S_DIR" -ForegroundColor Gray
 Write-Host "Namespace: $NAMESPACE" -ForegroundColor Gray
+Write-Host "Docker User: $DockerUser" -ForegroundColor Gray
+Write-Host "Skip Build: $SkipBuild" -ForegroundColor Gray
 Write-Host ""
 
-Write-Step "1/10" "Verificando prerequisitos..."
+Write-Step "1/12" "Verificando prerequisitos..."
 
 # Verificar kubectl
 if (-not (Get-Command kubectl -ErrorAction SilentlyContinue)) {
@@ -79,6 +89,22 @@ if (-not (Get-Command minikube -ErrorAction SilentlyContinue)) {
 }
 Write-Success "minikube encontrado"
 
+# Verificar Maven (solo si no se salta el build)
+if (-not $SkipBuild) {
+    if (-not (Get-Command mvn -ErrorAction SilentlyContinue)) {
+        Write-Error "Maven no esta instalado. Instalalo desde: https://maven.apache.org/download.cgi"
+        exit 1
+    }
+    Write-Success "Maven encontrado"
+
+    # Verificar Docker
+    if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
+        Write-Error "Docker no esta instalado. Instalalo desde: https://www.docker.com/products/docker-desktop"
+        exit 1
+    }
+    Write-Success "Docker encontrado"
+}
+
 # Verificar directorio K8s
 if (-not (Test-Path $K8S_DIR)) {
     Write-Error "Directorio K8s no encontrado: $K8S_DIR"
@@ -86,10 +112,109 @@ if (-not (Test-Path $K8S_DIR)) {
 }
 Write-Success "Directorio K8s encontrado"
 
+# Verificar directorio del proyecto
+if (-not (Test-Path $PROJECT_DIR)) {
+    Write-Error "Directorio del proyecto no encontrado: $PROJECT_DIR"
+    exit 1
+}
+Write-Success "Directorio del proyecto encontrado"
+
+# ============================================================================
+# COMPILAR PROYECTOS CON MAVEN
+# ============================================================================
+if (-not $SkipBuild) {
+    Write-Step "2/12" "Compilando proyectos con Maven..."
+
+    $allProjects = $INFRA_PROJECTS + $MS_PROJECTS
+    $totalProjects = $allProjects.Count
+    $currentProject = 0
+
+    foreach ($project in $allProjects) {
+        $currentProject++
+        $projectPath = Join-Path $PROJECT_DIR $project
+
+        if (Test-Path $projectPath) {
+            Write-Info "[$currentProject/$totalProjects] Compilando $project..."
+
+            Push-Location $projectPath
+            $result = mvn clean package -DskipTests -q 2>&1
+            $exitCode = $LASTEXITCODE
+            Pop-Location
+
+            if ($exitCode -ne 0) {
+                Write-Error "Error compilando $project"
+                Write-Host $result -ForegroundColor Red
+                exit 1
+            }
+            Write-Success "$project compilado"
+        } else {
+            Write-Error "Proyecto no encontrado: $projectPath"
+            exit 1
+        }
+    }
+
+    Write-Success "Todos los proyectos compilados exitosamente"
+
+    # ============================================================================
+    # CONSTRUIR IMAGENES DOCKER
+    # ============================================================================
+    Write-Step "3/12" "Construyendo imagenes Docker..."
+
+    $currentProject = 0
+    foreach ($project in $allProjects) {
+        $currentProject++
+        $projectPath = Join-Path $PROJECT_DIR $project
+        $imageName = "$DockerUser/${project}:1.0.0"
+
+        Write-Info "[$currentProject/$totalProjects] Construyendo imagen $imageName..."
+
+        Push-Location $projectPath
+        docker build -t $imageName -q . 2>&1 | Out-Null
+        $exitCode = $LASTEXITCODE
+        Pop-Location
+
+        if ($exitCode -ne 0) {
+            Write-Error "Error construyendo imagen para $project"
+            exit 1
+        }
+        Write-Success "Imagen $imageName construida"
+    }
+
+    Write-Success "Todas las imagenes Docker construidas"
+
+    # ============================================================================
+    # SUBIR IMAGENES A DOCKER HUB
+    # ============================================================================
+    Write-Step "4/12" "Subiendo imagenes a Docker Hub..."
+    Write-Info "Asegurate de haber ejecutado 'docker login' previamente"
+
+    $currentProject = 0
+    foreach ($project in $allProjects) {
+        $currentProject++
+        $imageName = "$DockerUser/${project}:1.0.0"
+
+        Write-Info "[$currentProject/$totalProjects] Subiendo $imageName..."
+
+        docker push $imageName 2>&1 | Out-Null
+        $exitCode = $LASTEXITCODE
+
+        if ($exitCode -ne 0) {
+            Write-Error "Error subiendo imagen $imageName"
+            Write-Info "Ejecuta 'docker login' e intenta de nuevo"
+            exit 1
+        }
+        Write-Success "$imageName subida"
+    }
+
+    Write-Success "Todas las imagenes subidas a Docker Hub"
+} else {
+    Write-Step "2-4/12" "Saltando compilacion y construccion de imagenes (SkipBuild activado)"
+}
+
 # ============================================================================
 # INICIAR MINIKUBE
 # ============================================================================
-Write-Step "2/10" "Configurando Minikube..."
+Write-Step "5/12" "Configurando Minikube..."
 
 $minikubeStatus = minikube status --format='{{.Host}}' 2>$null
 if ($minikubeStatus -ne "Running" -and -not $SkipMinikubeStart) {
@@ -120,7 +245,7 @@ Write-Success "Minikube IP: $MINIKUBE_IP"
 # LIMPIAR DESPLIEGUE ANTERIOR (OPCIONAL)
 # ============================================================================
 if ($CleanDeploy) {
-    Write-Step "2.5/10" "Eliminando despliegue anterior..."
+    Write-Step "5.5/12" "Eliminando despliegue anterior..."
     kubectl delete namespace $NAMESPACE --ignore-not-found=true 2>$null
     Start-Sleep -Seconds 5
     Write-Success "Namespace eliminado"
@@ -129,7 +254,7 @@ if ($CleanDeploy) {
 # ============================================================================
 # CREAR NAMESPACE
 # ============================================================================
-Write-Step "3/10" "Creando namespace..."
+Write-Step "6/12" "Creando namespace..."
 
 $namespaceYaml = @"
 apiVersion: v1
@@ -149,7 +274,7 @@ Write-Success "Namespace '$NAMESPACE' creado/verificado"
 # ============================================================================
 # ACTUALIZAR CONFIGMAPS CON IP DE MINIKUBE
 # ============================================================================
-Write-Step "4/10" "Actualizando ConfigMaps con IP de Minikube..."
+Write-Step "7/12" "Actualizando ConfigMaps con IP de Minikube..."
 
 # Actualizar frontend-configmap.yaml
 $frontendConfigPath = Join-Path $K8S_DIR "configmaps\frontend-configmap.yaml"
@@ -164,7 +289,7 @@ if (Test-Path $frontendConfigPath) {
 # ============================================================================
 # APLICAR SECRETS Y CONFIGMAPS
 # ============================================================================
-Write-Step "5/10" "Aplicando Secrets y ConfigMaps..."
+Write-Step "8/12" "Aplicando Secrets y ConfigMaps..."
 
 # Secrets
 $secretsPath = Join-Path $K8S_DIR "secrets"
@@ -189,7 +314,7 @@ Write-Success "Secrets y ConfigMaps aplicados"
 # ============================================================================
 # DESPLEGAR BASES DE DATOS
 # ============================================================================
-Write-Step "6/10" "Desplegando bases de datos MySQL..."
+Write-Step "9/12" "Desplegando bases de datos MySQL..."
 
 $databasesPath = Join-Path $K8S_DIR "databases"
 if (Test-Path $databasesPath) {
@@ -229,17 +354,18 @@ Write-Success "Bases de datos desplegadas"
 # ============================================================================
 # DESPLEGAR INFRAESTRUCTURA
 # ============================================================================
-Write-Step "7/10" "Desplegando infraestructura (Eureka, Config Server, Keycloak)..."
+Write-Step "10/12" "Desplegando infraestructura (Config Server, Eureka, Keycloak)..."
 
 $infraPath = Join-Path $K8S_DIR "infrastructure"
 
 # Orden de despliegue de infraestructura
+# IMPORTANTE: Config Server PRIMERO para que los microservicios puedan obtener su configuración
 $infraOrder = @(
-    "eureka-server.yaml",
-    "config-server.yaml",
-    "keycloak.yaml",
-    "api-gateway.yaml",
-    "frontend-deployment.yaml"
+    "config-server.yaml",     # 1. Config Server - provee configuración centralizada
+    "eureka-server.yaml",     # 2. Eureka - service discovery
+    "keycloak.yaml",          # 3. Keycloak - autenticación
+    "api-gateway.yaml",       # 4. API Gateway - punto de entrada
+    "frontend-deployment.yaml" # 5. Frontend
 )
 
 foreach ($file in $infraOrder) {
@@ -250,8 +376,30 @@ foreach ($file in $infraOrder) {
     }
 }
 
-# Esperar a Eureka primero
+# Esperar a que la infraestructura esté lista (en orden)
 if (-not $SkipWait) {
+    # 1. Esperar a Config Server PRIMERO (crítico para microservicios)
+    Write-Info "Esperando a Config Server (puede tomar 1-2 minutos)..."
+    $ready = $false
+    $attempts = 0
+    while (-not $ready -and $attempts -lt 24) {
+        $status = kubectl get pods -n $NAMESPACE -l app=config-server -o jsonpath='{.items[0].status.conditions[?(@.type=="Ready")].status}' 2>$null
+        if ($status -eq "True") {
+            $ready = $true
+            Write-Success "Config Server esta listo"
+        } else {
+            $attempts++
+            Write-Host "." -NoNewline
+            Start-Sleep -Seconds 5
+        }
+    }
+    Write-Host ""
+    if (-not $ready) {
+        Write-Error "Config Server no esta listo despues de 2 minutos"
+        Write-Info "Los microservicios pueden fallar al iniciar sin Config Server"
+    }
+
+    # 2. Esperar a Eureka Server
     Write-Info "Esperando a Eureka Server (puede tomar 2-3 minutos)..."
     $ready = $false
     $attempts = 0
@@ -268,7 +416,7 @@ if (-not $SkipWait) {
     }
     Write-Host ""
 
-    # Esperar a Keycloak
+    # 3. Esperar a Keycloak
     Write-Info "Esperando a Keycloak..."
     $ready = $false
     $attempts = 0
@@ -291,7 +439,7 @@ Write-Success "Infraestructura desplegada"
 # ============================================================================
 # DESPLEGAR MICROSERVICIOS
 # ============================================================================
-Write-Step "8/10" "Desplegando microservicios..."
+Write-Step "11/12" "Desplegando microservicios..."
 
 $microservicesPath = Join-Path $K8S_DIR "microservices"
 if (Test-Path $microservicesPath) {
@@ -326,7 +474,7 @@ Write-Success "Microservicios desplegados"
 # ============================================================================
 # VERIFICAR DESPLIEGUE
 # ============================================================================
-Write-Step "9/10" "Verificando despliegue..."
+Write-Step "12/12" "Verificando despliegue y mostrando informacion..."
 
 Write-Host ""
 Write-Host "PODS:" -ForegroundColor White
@@ -339,7 +487,7 @@ kubectl get services -n $NAMESPACE
 # ============================================================================
 # MOSTRAR URLs DE ACCESO
 # ============================================================================
-Write-Step "10/10" "Informacion de acceso..."
+# Informacion de acceso (parte del paso 12)
 
 Write-Header "DESPLIEGUE COMPLETADO"
 
