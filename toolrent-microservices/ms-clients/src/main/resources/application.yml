@@ -5,10 +5,10 @@ spring:
   application:
     name: ms-clients
   config:
-    import: "optional:configserver:"
+    import: "optional:configserver:http://config-server:8888"
   cloud:
     config:
-      enabled: false
+      enabled: true
   datasource:
     url: jdbc:mysql://mysql-clients:3306/clients_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&characterEncoding=UTF-8
     username: root

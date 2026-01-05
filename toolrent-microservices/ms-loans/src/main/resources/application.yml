@@ -8,10 +8,10 @@ spring:
   application:
     name: ms-loans
   config:
-    import: "optional:configserver:"
+    import: "optional:configserver:http://config-server:8888"
   cloud:
     config:
-      enabled: false
+      enabled: true
   datasource:
     url: jdbc:mysql://mysql-loans:3306/loans_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&characterEncoding=UTF-8
     username: root

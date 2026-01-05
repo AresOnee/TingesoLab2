@@ -5,10 +5,10 @@ spring:
   application:
     name: ms-reports
   config:
-    import: "optional:configserver:"
+    import: "optional:configserver:http://config-server:8888"
   cloud:
     config:
-      enabled: false
+      enabled: true
 
 eureka:
   client:
