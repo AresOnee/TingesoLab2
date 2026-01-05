@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: frontend
-          image: toolrent/frontend:latest
+          image: fergusone/toolrent-frontend:1.0.0
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 80
