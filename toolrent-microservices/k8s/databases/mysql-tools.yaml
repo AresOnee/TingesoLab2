@@ -36,6 +36,16 @@ spec:
                 secretKeyRef:
                   name: mysql-credentials
                   key: MYSQL_ROOT_PASSWORD
+            - name: MYSQL_USER
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-credentials
+                  key: MYSQL_USER
+            - name: MYSQL_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: mysql-credentials
+                  key: MYSQL_PASSWORD
             - name: MYSQL_DATABASE
               value: "tools_db"
           volumeMounts:
