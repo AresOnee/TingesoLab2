@@ -6,7 +6,7 @@ spring:
   application:
     name: ms-kardex
   datasource:
-    url: jdbc:mysql://mysql-kardex:3306/kardex_db?createDatabaseIfNotExist=true&serverTimezone=UTC
+    url: jdbc:mysql://mysql-kardex:3306/kardex_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&characterEncoding=UTF-8
     username: root
     password: rootpass
     driver-class-name: com.mysql.cj.jdbc.Driver
@@ -16,7 +16,7 @@ spring:
     show-sql: false
     properties:
       hibernate:
-        dialect: org.hibernate.dialect.MySQLDialect
+        dialect: org.hibernate.dialect.MySQL8Dialect
 
 eureka:
   client:
@@ -25,3 +25,13 @@ eureka:
   instance:
     prefer-ip-address: true
     instance-id: ${spring.application.name}:${random.uuid}
+
+# Actuator endpoints para health checks
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      show-details: always
