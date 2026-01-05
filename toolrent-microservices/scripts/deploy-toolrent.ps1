@@ -10,8 +10,8 @@ param(
     [switch]$SkipMinikubeStart,    # Saltar inicio de Minikube si ya esta corriendo
     [switch]$CleanDeploy,          # Eliminar namespace existente antes de desplegar
     [switch]$SkipWait,             # No esperar a que los pods esten listos
-    [int]$MinikubeMemory = 8192,   # Memoria para Minikube en MB
-    [int]$MinikubeCPUs = 4         # CPUs para Minikube
+    [int]$MinikubeMemory = 12288,  # Memoria para Minikube en MB (12GB)
+    [int]$MinikubeCPUs = 6         # CPUs para Minikube
 )
 
 # ============================================================================
