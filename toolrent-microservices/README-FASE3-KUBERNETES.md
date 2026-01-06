@@ -39,7 +39,7 @@ Enable-WindowsOptionalFeature -Online -FeatureName Microsoft-Hyper-V -All
         │  │  ┌─────────┬─────────┬───────┐ │  │
         │  │  │ms-tools │ms-client│ms-conf│ │  │
         │  │  │ms-kardex│ms-loans │ms-repo│ │  │
-        │  │  │ms-users │         │       │ │  │
+        │  │  │Keycloak │         │       │ │  │
         │  │  └────┬────┴────┬────┴───┬───┘ │  │
         │  │       │         │        │     │  │
         │  │  ┌────▼────┬────▼────┬───▼───┐ │  │
@@ -62,8 +62,7 @@ k8s/
 │   ├── mysql-clients.yaml
 │   ├── mysql-config.yaml
 │   ├── mysql-loans.yaml
-│   ├── mysql-kardex.yaml
-│   └── mysql-users.yaml
+│   └── mysql-kardex.yaml
 ├── infrastructure/
 │   ├── config-server.yaml # ClusterIP :8888
 │   ├── eureka-server.yaml # ClusterIP :8761
@@ -74,8 +73,8 @@ k8s/
     ├── ms-config.yaml     # ClusterIP
     ├── ms-kardex.yaml     # ClusterIP
     ├── ms-loans.yaml      # ClusterIP
-    ├── ms-reports.yaml    # ClusterIP
-    └── ms-users.yaml      # ClusterIP
+    └── ms-reports.yaml    # ClusterIP
+    # NOTA: La Épica 7 se maneja con Keycloak (ver k8s/infrastructure/keycloak.yaml)
 ```
 
 ## 🔧 Paso 1: Iniciar Minikube con Hyper-V

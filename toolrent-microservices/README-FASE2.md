@@ -10,7 +10,9 @@
 | ms-kardex | dinámico | kardex_db (3311) | Épica 5: Kardex y Movimientos |
 | ms-loans | dinámico | loans_db (3310) | Épica 2: Préstamos y Devoluciones |
 | ms-reports | dinámico | (sin BD) | Épica 6: Reportes |
-| ms-users | dinámico | users_db (3312) | Épica 7: Usuarios |
+| **Keycloak** | 9090/30090 | H2 embebida | Épica 7: Usuarios y Roles |
+
+> **Nota:** La Épica 7 (Gestión de Usuarios y Roles) se implementa con Keycloak en lugar de un microservicio propio.
 
 ## 🏗️ Arquitectura
 
@@ -29,11 +31,11 @@
                              │
          ┌───────┬───────┬───┴───┬───────┬───────┬───────┐
          ▼       ▼       ▼       ▼       ▼       ▼       ▼
-     ms-tools ms-clients ms-config ms-kardex ms-loans ms-reports ms-users
+     ms-tools ms-clients ms-config ms-kardex ms-loans ms-reports Keycloak
          │       │       │       │       │               │
          ▼       ▼       ▼       ▼       ▼               ▼
-     MySQL    MySQL    MySQL   MySQL   MySQL          MySQL
-     3307     3308     3309    3311    3310           3312
+     MySQL    MySQL    MySQL   MySQL   MySQL          H2 (emb)
+     3307     3308     3309    3311    3310           9090
 ```
 
 ## 🚀 Instrucciones de Compilación
@@ -66,7 +68,7 @@ cd ms-config && mvn clean package -DskipTests && cd ..
 cd ms-kardex && mvn clean package -DskipTests && cd ..
 cd ms-loans && mvn clean package -DskipTests && cd ..
 cd ms-reports && mvn clean package -DskipTests && cd ..
-cd ms-users && mvn clean package -DskipTests && cd ..
+# NOTA: ms-users fue reemplazado por Keycloak
 ```
 
 ### Paso 2: Ejecutar con Docker Compose
@@ -137,12 +139,11 @@ GET    /api/v1/reports/clients-with-overdues  # Clientes con atrasos
 GET    /api/v1/reports/most-loaned-tools   # Ranking herramientas
 ```
 
-### Usuarios (ms-users)
-```
-GET    /api/v1/users/           # Listar usuarios
-GET    /api/v1/users/{id}       # Obtener por ID
-POST   /api/v1/users/           # Crear usuario
-```
+### Usuarios (Keycloak)
+La gestión de usuarios se realiza mediante Keycloak:
+- Admin Console: http://localhost:9090/admin
+- Realm: `sisgr-realm`
+- Roles: `ADMIN`, `USER`
 
 ## 🗄️ Seed Data
 
@@ -154,7 +155,7 @@ Ver archivos en `/seed-data/`:
 - `03-config-seed.sql` - 3 configuraciones de tarifas
 - `04-loans-seed.sql` - 18 préstamos históricos
 - `05-kardex-seed.sql` - 24 movimientos de inventario
-- `06-users-seed.sql` - 5 usuarios
+- Usuarios gestionados en Keycloak (admin/admin123, juan/juan123)
 
 ## 🔄 Comunicación entre Microservicios
 

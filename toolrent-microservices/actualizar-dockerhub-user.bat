@@ -33,7 +33,7 @@ powershell -Command "(Get-Content k8s/microservices/ms-config.yaml) -replace 'TU
 powershell -Command "(Get-Content k8s/microservices/ms-kardex.yaml) -replace 'TU_USUARIO_DOCKERHUB', '%DOCKER_USER%' | Set-Content k8s/microservices/ms-kardex.yaml"
 powershell -Command "(Get-Content k8s/microservices/ms-loans.yaml) -replace 'TU_USUARIO_DOCKERHUB', '%DOCKER_USER%' | Set-Content k8s/microservices/ms-loans.yaml"
 powershell -Command "(Get-Content k8s/microservices/ms-reports.yaml) -replace 'TU_USUARIO_DOCKERHUB', '%DOCKER_USER%' | Set-Content k8s/microservices/ms-reports.yaml"
-powershell -Command "(Get-Content k8s/microservices/ms-users.yaml) -replace 'TU_USUARIO_DOCKERHUB', '%DOCKER_USER%' | Set-Content k8s/microservices/ms-users.yaml"
+REM NOTA: ms-users fue reemplazado por Keycloak para gestion de usuarios (Epica 7)
 
 REM Actualizar script de docker build
 echo.
