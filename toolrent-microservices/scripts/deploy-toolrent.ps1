@@ -28,7 +28,7 @@ $SEED_DIR = Join-Path $PROJECT_DIR "seed-data"
 
 # Lista de proyectos a compilar y construir
 $INFRA_PROJECTS = @("config-server", "eureka-server", "api-gateway")
-$MS_PROJECTS = @("ms-tools", "ms-clients", "ms-config", "ms-loans", "ms-kardex", "ms-reports", "ms-users")
+$MS_PROJECTS = @("ms-tools", "ms-clients", "ms-config", "ms-loans", "ms-kardex", "ms-reports")
 
 # Colores para output
 function Write-Color {
@@ -332,7 +332,7 @@ if (-not $SkipWait) {
     Write-Info "Esperando a que las bases de datos esten listas (60s)..."
     Start-Sleep -Seconds 30
 
-    $databases = @("mysql-clients", "mysql-tools", "mysql-loans", "mysql-kardex", "mysql-config", "mysql-users")
+    $databases = @("mysql-clients", "mysql-tools", "mysql-loans", "mysql-kardex", "mysql-config")
     foreach ($db in $databases) {
         $ready = $false
         $attempts = 0
@@ -515,7 +515,7 @@ if (-not $SkipWait) {
     Write-Info "Esperando a que los microservicios esten listos..."
     Start-Sleep -Seconds 30
 
-    $microservices = @("ms-clients", "ms-tools", "ms-loans", "ms-kardex", "ms-config", "ms-users", "ms-reports")
+    $microservices = @("ms-clients", "ms-tools", "ms-loans", "ms-kardex", "ms-config", "ms-reports")
     foreach ($ms in $microservices) {
         $attempts = 0
         while ($attempts -lt 12) {
