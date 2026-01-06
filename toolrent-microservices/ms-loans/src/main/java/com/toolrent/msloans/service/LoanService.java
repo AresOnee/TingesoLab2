@@ -324,7 +324,7 @@ public class LoanService {
     private void registerKardexMovement(Long toolId, String toolName, String type, int quantity,
                                         String username, String observations, Long loanId) {
         try {
-            String url = MS_KARDEX_URL + "/api/v1/kardex/";
+            String url = MS_KARDEX_URL + "/api/v1/kardex";
             Map<String, Object> body = new HashMap<>();
             body.put("toolId", toolId);
             body.put("toolName", toolName);
@@ -334,8 +334,9 @@ public class LoanService {
             body.put("observations", observations);
             body.put("loanId", loanId);
             restTemplate.postForObject(url, body, Object.class);
+            log.info("Kardex registrado exitosamente: {} - {} unidades de herramienta {}", type, quantity, toolName);
         } catch (Exception e) {
-            log.error("Error al registrar movimiento en kardex: {}", e.getMessage());
+            log.error("Error al registrar movimiento en kardex: {} - URL: {}", e.getMessage(), MS_KARDEX_URL + "/api/v1/kardex");
         }
     }
 
