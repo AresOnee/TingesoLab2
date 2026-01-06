@@ -76,7 +76,7 @@ Write-Host "Skip Build: $SkipBuild" -ForegroundColor Gray
 Write-Host "Skip Seed: $SkipSeed" -ForegroundColor Gray
 Write-Host ""
 
-Write-Step "1/13" "Verificando prerequisitos..."
+Write-Step "1/12" "Verificando prerequisitos..."
 
 # Verificar kubectl
 if (-not (Get-Command kubectl -ErrorAction SilentlyContinue)) {
@@ -126,7 +126,7 @@ Write-Success "Directorio del proyecto encontrado"
 # COMPILAR PROYECTOS CON MAVEN
 # ============================================================================
 if (-not $SkipBuild) {
-    Write-Step "2/13" "Compilando proyectos con Maven..."
+    Write-Step "2/12" "Compilando proyectos con Maven..."
 
     $allProjects = $INFRA_PROJECTS + $MS_PROJECTS
     $totalProjects = $allProjects.Count
@@ -161,7 +161,7 @@ if (-not $SkipBuild) {
     # ============================================================================
     # CONSTRUIR IMAGENES DOCKER
     # ============================================================================
-    Write-Step "3/13" "Construyendo imagenes Docker..."
+    Write-Step "3/12" "Construyendo imagenes Docker..."
 
     $currentProject = 0
     foreach ($project in $allProjects) {
@@ -188,7 +188,7 @@ if (-not $SkipBuild) {
     # ============================================================================
     # SUBIR IMAGENES A DOCKER HUB
     # ============================================================================
-    Write-Step "4/13" "Subiendo imagenes a Docker Hub..."
+    Write-Step "4/12" "Subiendo imagenes a Docker Hub..."
     Write-Info "Asegurate de haber ejecutado 'docker login' previamente"
 
     $currentProject = 0
@@ -211,13 +211,13 @@ if (-not $SkipBuild) {
 
     Write-Success "Todas las imagenes subidas a Docker Hub"
 } else {
-    Write-Step "2-4/13" "Saltando compilacion y construccion de imagenes (SkipBuild activado)"
+    Write-Step "2-4/12" "Saltando compilacion y construccion de imagenes (SkipBuild activado)"
 }
 
 # ============================================================================
 # INICIAR MINIKUBE
 # ============================================================================
-Write-Step "5/13" "Configurando Minikube..."
+Write-Step "5/12" "Configurando Minikube..."
 
 $minikubeStatus = minikube status --format='{{.Host}}' 2>$null
 if ($minikubeStatus -ne "Running" -and -not $SkipMinikubeStart) {
@@ -248,7 +248,7 @@ Write-Success "Minikube IP: $MINIKUBE_IP"
 # LIMPIAR DESPLIEGUE ANTERIOR (OPCIONAL)
 # ============================================================================
 if ($CleanDeploy) {
-    Write-Step "5.5/13" "Eliminando despliegue anterior..."
+    Write-Step "5.5/12" "Eliminando despliegue anterior..."
     kubectl delete namespace $NAMESPACE --ignore-not-found=true 2>$null
     Start-Sleep -Seconds 5
     Write-Success "Namespace eliminado"
@@ -257,7 +257,7 @@ if ($CleanDeploy) {
 # ============================================================================
 # CREAR NAMESPACE
 # ============================================================================
-Write-Step "6/13" "Creando namespace..."
+Write-Step "6/12" "Creando namespace..."
 
 $namespaceYaml = @"
 apiVersion: v1
@@ -277,7 +277,7 @@ Write-Success "Namespace '$NAMESPACE' creado/verificado"
 # ============================================================================
 # ACTUALIZAR CONFIGMAPS CON IP DE MINIKUBE
 # ============================================================================
-Write-Step "7/13" "Actualizando ConfigMaps con IP de Minikube..."
+Write-Step "7/12" "Actualizando ConfigMaps con IP de Minikube..."
 
 # Actualizar frontend-configmap.yaml
 $frontendConfigPath = Join-Path $K8S_DIR "configmaps\frontend-configmap.yaml"
@@ -292,7 +292,7 @@ if (Test-Path $frontendConfigPath) {
 # ============================================================================
 # APLICAR SECRETS Y CONFIGMAPS
 # ============================================================================
-Write-Step "8/13" "Aplicando Secrets y ConfigMaps..."
+Write-Step "8/12" "Aplicando Secrets y ConfigMaps..."
 
 # Secrets
 $secretsPath = Join-Path $K8S_DIR "secrets"
@@ -317,7 +317,7 @@ Write-Success "Secrets y ConfigMaps aplicados"
 # ============================================================================
 # DESPLEGAR BASES DE DATOS
 # ============================================================================
-Write-Step "9/13" "Desplegando bases de datos MySQL..."
+Write-Step "9/12" "Desplegando bases de datos MySQL..."
 
 $databasesPath = Join-Path $K8S_DIR "databases"
 if (Test-Path $databasesPath) {
@@ -355,67 +355,9 @@ if (-not $SkipWait) {
 Write-Success "Bases de datos desplegadas"
 
 # ============================================================================
-# CARGAR DATOS DE PRUEBA (SEED)
-# ============================================================================
-if (-not $SkipSeed) {
-    Write-Step "10/13" "Cargando datos de prueba (seed) en las bases de datos..."
-
-    # Verificar que existe el directorio de seeds
-    if (Test-Path $SEED_DIR) {
-        # Esperar un poco mas para asegurar que MySQL esta completamente listo
-        Write-Info "Esperando 15 segundos adicionales para que MySQL este completamente listo..."
-        Start-Sleep -Seconds 15
-
-        # Definir los seeds a cargar (archivo, deployment, base de datos)
-        $seeds = @(
-            @{file="01-tools-seed.sql"; deployment="mysql-tools"; database="tools_db"},
-            @{file="02-clients-seed.sql"; deployment="mysql-clients"; database="clients_db"},
-            @{file="03-config-seed.sql"; deployment="mysql-config"; database="config_db"},
-            @{file="04-loans-seed.sql"; deployment="mysql-loans"; database="loans_db"},
-            @{file="05-kardex-seed.sql"; deployment="mysql-kardex"; database="kardex_db"}
-        )
-
-        foreach ($seed in $seeds) {
-            $seedFile = Join-Path $SEED_DIR $seed.file
-            if (Test-Path $seedFile) {
-                Write-Info "Cargando $($seed.file) en $($seed.database)..."
-
-                # Obtener el nombre del pod
-                $podName = kubectl get pods -n $NAMESPACE -l app=$($seed.deployment) -o jsonpath='{.items[0].metadata.name}' 2>$null
-
-                if ($podName) {
-                    # Copiar archivo al pod (preserva encoding UTF-8)
-                    kubectl cp $seedFile "${NAMESPACE}/${podName}:/tmp/seed.sql" 2>$null
-
-                    # Ejecutar el seed con charset utf8mb4
-                    $result = kubectl exec -i "deployment/$($seed.deployment)" -n $NAMESPACE -- mysql -u toolrent -ptoolrent123 --default-character-set=utf8mb4 $($seed.database) -e "source /tmp/seed.sql" 2>&1
-
-                    if ($LASTEXITCODE -eq 0) {
-                        Write-Success "$($seed.file) cargado correctamente"
-                    } else {
-                        Write-Info "Advertencia al cargar $($seed.file): puede que ya existan datos"
-                    }
-                } else {
-                    Write-Info "Pod $($seed.deployment) no encontrado, saltando seed"
-                }
-            } else {
-                Write-Info "Archivo $($seed.file) no encontrado, saltando"
-            }
-        }
-
-        Write-Success "Datos de prueba cargados"
-    } else {
-        Write-Info "Directorio de seeds no encontrado: $SEED_DIR"
-        Write-Info "Saltando carga de datos de prueba"
-    }
-} else {
-    Write-Step "10/13" "Saltando carga de datos de prueba (SkipSeed activado)"
-}
-
-# ============================================================================
 # DESPLEGAR INFRAESTRUCTURA
 # ============================================================================
-Write-Step "11/13" "Desplegando infraestructura (Config Server, Eureka, Keycloak)..."
+Write-Step "10/12" "Desplegando infraestructura (Config Server, Eureka, Keycloak)..."
 
 $infraPath = Join-Path $K8S_DIR "infrastructure"
 
@@ -500,7 +442,7 @@ Write-Success "Infraestructura desplegada"
 # ============================================================================
 # DESPLEGAR MICROSERVICIOS
 # ============================================================================
-Write-Step "12/13" "Desplegando microservicios..."
+Write-Step "11/12" "Desplegando microservicios..."
 
 $microservicesPath = Join-Path $K8S_DIR "microservices"
 if (Test-Path $microservicesPath) {
@@ -533,9 +475,9 @@ if (-not $SkipWait) {
 Write-Success "Microservicios desplegados"
 
 # ============================================================================
-# VERIFICAR DESPLIEGUE
+# VERIFICAR DESPLIEGUE Y CARGAR SEEDS
 # ============================================================================
-Write-Step "13/13" "Verificando despliegue y mostrando informacion..."
+Write-Step "12/12" "Verificando despliegue y cargando datos de prueba..."
 
 Write-Host ""
 Write-Host "PODS:" -ForegroundColor White
@@ -546,9 +488,75 @@ Write-Host "SERVICES:" -ForegroundColor White
 kubectl get services -n $NAMESPACE
 
 # ============================================================================
+# CARGAR DATOS DE PRUEBA (SEED) - AL FINAL CUANDO TODO ESTA LISTO
+# ============================================================================
+if (-not $SkipSeed) {
+    Write-Host ""
+    Write-Info "Cargando datos de prueba (seeds) en las bases de datos..."
+    Write-Info "Los microservicios ya crearon las tablas con JPA/Hibernate"
+
+    if (Test-Path $SEED_DIR) {
+        # Esperar un momento para asegurar que las tablas esten creadas
+        Write-Info "Esperando 10 segundos para asegurar que las tablas existan..."
+        Start-Sleep -Seconds 10
+
+        # Definir los seeds a cargar (archivo, deployment, base de datos)
+        $seeds = @(
+            @{file="01-tools-seed.sql"; label="mysql-tools"; database="tools_db"; name="Herramientas"},
+            @{file="02-clients-seed.sql"; label="mysql-clients"; database="clients_db"; name="Clientes"},
+            @{file="03-config-seed.sql"; label="mysql-config"; database="config_db"; name="Configuracion"},
+            @{file="04-loans-seed.sql"; label="mysql-loans"; database="loans_db"; name="Prestamos"},
+            @{file="05-kardex-seed.sql"; label="mysql-kardex"; database="kardex_db"; name="Kardex"}
+        )
+
+        $seedSuccess = 0
+        $seedFailed = 0
+
+        foreach ($seed in $seeds) {
+            $seedFile = Join-Path $SEED_DIR $seed.file
+            if (Test-Path $seedFile) {
+                # Obtener el nombre del pod
+                $podName = kubectl get pods -n $NAMESPACE -l app=$($seed.label) -o jsonpath='{.items[0].metadata.name}' 2>$null
+
+                if ($podName) {
+                    # Copiar archivo al pod (preserva encoding UTF-8)
+                    kubectl cp $seedFile "${NAMESPACE}/${podName}:/tmp/seed.sql" 2>$null
+
+                    # Ejecutar el seed con charset utf8mb4
+                    kubectl exec $podName -n $NAMESPACE -- mysql -u toolrent -ptoolrent123 --default-character-set=utf8mb4 $($seed.database) -e "source /tmp/seed.sql" 2>$null
+
+                    if ($LASTEXITCODE -eq 0) {
+                        Write-Success "$($seed.name) cargado"
+                        $seedSuccess++
+                    } else {
+                        Write-Info "$($seed.name): puede que ya existan datos"
+                        $seedSuccess++
+                    }
+
+                    # Limpiar archivo temporal
+                    kubectl exec $podName -n $NAMESPACE -- rm -f /tmp/seed.sql 2>$null
+                } else {
+                    Write-Error "Pod $($seed.label) no encontrado"
+                    $seedFailed++
+                }
+            } else {
+                Write-Info "Archivo $($seed.file) no encontrado, saltando"
+            }
+        }
+
+        Write-Host ""
+        Write-Success "Seeds completados: $seedSuccess exitosos, $seedFailed fallidos"
+    } else {
+        Write-Info "Directorio de seeds no encontrado: $SEED_DIR"
+    }
+} else {
+    Write-Host ""
+    Write-Info "Saltando carga de datos de prueba (SkipSeed activado)"
+}
+
+# ============================================================================
 # MOSTRAR URLs DE ACCESO
 # ============================================================================
-# Informacion de acceso (parte del paso 12)
 
 Write-Header "DESPLIEGUE COMPLETADO"
 
