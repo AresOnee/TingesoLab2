@@ -15,13 +15,15 @@ public class CorsConfig {
     @Bean
     public CorsWebFilter corsWebFilter() {
         CorsConfiguration corsConfig = new CorsConfiguration();
-        
-        // Orígenes permitidos
-        corsConfig.setAllowedOrigins(Arrays.asList(
-            "http://localhost:3000",
-            "http://localhost:5173",
-            "http://frontend:80",
-            "http://frontend:3000"
+
+        // Orígenes permitidos (usando patrones para IPs dinámicas de Minikube)
+        corsConfig.setAllowedOriginPatterns(Arrays.asList(
+            "http://localhost:*",
+            "http://127.0.0.1:*",
+            "http://172.*:*",
+            "http://192.168.*:*",
+            "http://10.*:*",
+            "http://frontend:*"
         ));
         
         // Métodos permitidos
