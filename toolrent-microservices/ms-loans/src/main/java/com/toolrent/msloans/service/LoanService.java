@@ -84,9 +84,17 @@ public class LoanService {
         log.info("Herramienta obtenida: {} - Stock: {} - Estado: {}", tool.getName(), tool.getStock(), tool.getStatus());
 
         // 4. Validar disponibilidad de herramienta
-        if (tool.getStock() <= 0) {
+        // Contar préstamos activos de esta herramienta para calcular disponibilidad real
+        long activeLoansForTool = loanRepository.countActiveByToolId(toolId);
+        int availableUnits = tool.getStock() - (int) activeLoansForTool;
+
+        log.info("Herramienta {} - Stock total: {}, Prestadas: {}, Disponibles: {}",
+                tool.getName(), tool.getStock(), activeLoansForTool, availableUnits);
+
+        if (availableUnits <= 0) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
-                    String.format("La herramienta '%s' no tiene stock disponible", tool.getName()));
+                    String.format("La herramienta '%s' no tiene unidades disponibles (Stock: %d, Prestadas: %d)",
+                            tool.getName(), tool.getStock(), activeLoansForTool));
         }
 
         if ("Baja".equalsIgnoreCase(tool.getStatus()) || "En Reparación".equalsIgnoreCase(tool.getStatus())) {
@@ -127,14 +135,10 @@ public class LoanService {
         LoanEntity saved = loanRepository.save(loan);
         log.info("Préstamo creado con ID: {}", saved.getId());
 
-        // 9. Actualizar stock de herramienta (restar 1)
-        updateToolStock(toolId, -1);
-        log.info("Stock de herramienta actualizado");
-
-        // 10. Registrar movimiento en kardex
+        // 9. Registrar movimiento en kardex (NO modificamos stock, se calcula dinámicamente)
         registerKardexMovement(toolId, tool.getName(), "PRESTAMO", -1, username,
                 String.format("Préstamo a %s", client.getName()), saved.getId());
-        log.info("Movimiento de kardex registrado");
+        log.info("Movimiento de kardex registrado para préstamo");
 
         return saved;
     }
@@ -197,8 +201,7 @@ public class LoanService {
             registerKardexMovement(loan.getToolId(), loan.getToolName(), "REPARACION", 0, username,
                     "Enviada a reparación por daño en préstamo #" + loanId, loanId);
         } else {
-            // Devolución normal: incrementar stock
-            updateToolStock(loan.getToolId(), 1);
+            // Devolución normal: solo registrar en kardex (stock se calcula dinámicamente)
             registerKardexMovement(loan.getToolId(), loan.getToolName(), "DEVOLUCION", 1, username,
                     "Devolución normal", loanId);
         }

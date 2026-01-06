@@ -19,6 +19,12 @@ public interface LoanRepository extends JpaRepository<LoanEntity, Long> {
     long countActiveByClientId(@Param("clientId") Long clientId);
 
     /**
+     * Cuenta préstamos activos de una herramienta (para calcular disponibilidad)
+     */
+    @Query("SELECT COUNT(l) FROM LoanEntity l WHERE l.toolId = :toolId AND l.returnDate IS NULL")
+    long countActiveByToolId(@Param("toolId") Long toolId);
+
+    /**
      * Verifica si un cliente tiene préstamo activo con una herramienta
      */
     @Query("SELECT (COUNT(l) > 0) FROM LoanEntity l WHERE l.clientId = :clientId AND l.toolId = :toolId AND l.status IN ('ACTIVO', 'ATRASADO')")
