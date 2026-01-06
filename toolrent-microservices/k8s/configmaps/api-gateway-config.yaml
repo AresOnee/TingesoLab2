@@ -1,6 +1,6 @@
 # ============================================
 # API GATEWAY CONFIG FOR KUBERNETES
-# Usa URLs directas de K8s en lugar de Eureka
+# Usa Eureka Service Discovery con lb://
 # ============================================
 apiVersion: v1
 kind: ConfigMap
@@ -20,50 +20,46 @@ data:
       cloud:
         gateway:
           routes:
-            # MS-TOOLS (con y sin trailing slash)
+            # MS-TOOLS (Épica 1: Gestión de Herramientas)
             - id: ms-tools
-              uri: http://ms-tools:8080
+              uri: lb://MS-TOOLS
               predicates:
                 - Path=/api/v1/tools,/api/v1/tools/**
-            # MS-LOANS (con y sin trailing slash)
+            # MS-LOANS (Épica 2: Préstamos y Devoluciones)
             - id: ms-loans
-              uri: http://ms-loans:8080
+              uri: lb://MS-LOANS
               predicates:
                 - Path=/api/v1/loans,/api/v1/loans/**
-            # MS-CLIENTS (con y sin trailing slash)
+            # MS-CLIENTS (Épica 3: Gestión de Clientes)
             - id: ms-clients
-              uri: http://ms-clients:8080
+              uri: lb://MS-CLIENTS
               predicates:
                 - Path=/api/v1/clients,/api/v1/clients/**
-            # MS-CONFIG (con y sin trailing slash)
+            # MS-CONFIG (Épica 4: Gestión de Tarifas)
             - id: ms-config
-              uri: http://ms-config:8080
+              uri: lb://MS-CONFIG
               predicates:
                 - Path=/api/v1/config,/api/v1/config/**
-            # MS-KARDEX (con y sin trailing slash)
+            # MS-KARDEX (Épica 5: Kardex y Movimientos)
             - id: ms-kardex
-              uri: http://ms-kardex:8080
+              uri: lb://MS-KARDEX
               predicates:
                 - Path=/api/v1/kardex,/api/v1/kardex/**
-            # MS-REPORTS (con y sin trailing slash)
+            # MS-REPORTS (Épica 6: Reportes y Consultas)
             - id: ms-reports
-              uri: http://ms-reports:8080
+              uri: lb://MS-REPORTS
               predicates:
                 - Path=/api/v1/reports,/api/v1/reports/**
-            # MS-USERS (con y sin trailing slash)
-            - id: ms-users
-              uri: http://ms-users:8080
-              predicates:
-                - Path=/api/v1/users,/api/v1/users/**
-            # MS-USERS Auth (con y sin trailing slash)
-            - id: ms-users-auth
-              uri: http://ms-users:8080
-              predicates:
-                - Path=/api/v1/auth,/api/v1/auth/**
           globalcors:
             corsConfigurations:
               '[/**]':
-                allowedOrigins: "*"
+                allowedOriginPatterns:
+                  - "http://localhost:*"
+                  - "http://127.0.0.1:*"
+                  - "http://172.*:*"
+                  - "http://192.168.*:*"
+                  - "http://10.*:*"
+                  - "http://frontend:*"
                 allowedMethods:
                   - GET
                   - POST
@@ -72,13 +68,17 @@ data:
                   - OPTIONS
                   - PATCH
                 allowedHeaders: "*"
-                allowCredentials: false
+                allowCredentials: true
                 maxAge: 3600
 
-    # Deshabilitar Eureka para K8s
+    # Habilitar Eureka Service Discovery
     eureka:
       client:
-        enabled: false
+        enabled: true
+        service-url:
+          defaultZone: http://eureka-server:8761/eureka/
+      instance:
+        prefer-ip-address: true
 
     # OAuth2 Resource Server (Keycloak)
     spring.security.oauth2.resourceserver.jwt.jwk-set-uri: http://keycloak:8080/realms/sisgr-realm/protocol/openid-connect/certs

@@ -17,10 +17,12 @@ spec:
         - name: ms-loans
           image: fergusone/ms-loans:1.0.0
           ports:
-            - containerPort: 8080
+            - containerPort: 8081
+              name: management
           env:
-            - name: SERVER_PORT
-              value: "8080"
+            # Puerto de management fijo para health checks
+            - name: MANAGEMENT_SERVER_PORT
+              value: "8081"
             - name: SPRING_DATASOURCE_URL
               value: "jdbc:mysql://mysql-loans:3306/loans_db?createDatabaseIfNotExist=true&useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&characterEncoding=UTF-8"
             - name: SPRING_DATASOURCE_USERNAME
@@ -45,13 +47,13 @@ spec:
           readinessProbe:
             httpGet:
               path: /actuator/health
-              port: 8080
+              port: 8081
             initialDelaySeconds: 45
             periodSeconds: 10
           livenessProbe:
             httpGet:
               path: /actuator/health
-              port: 8080
+              port: 8081
             initialDelaySeconds: 90
             periodSeconds: 30
 ---
@@ -65,5 +67,6 @@ spec:
   selector:
     app: ms-loans
   ports:
-    - port: 8080
-      targetPort: 8080
+    - port: 8081
+      targetPort: 8081
+      name: management

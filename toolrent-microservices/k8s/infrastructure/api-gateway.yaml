@@ -1,7 +1,6 @@
 # ============================================
 # API GATEWAY - KUBERNETES DEPLOYMENT
-# Configurado para usar URLs directas de K8s
-# (sin Eureka Service Discovery)
+# Configurado para usar Eureka Service Discovery
 # ============================================
 apiVersion: apps/v1
 kind: Deployment
@@ -26,9 +25,9 @@ spec:
           ports:
             - containerPort: 8080
           env:
-            # Deshabilitar Eureka
-            - name: EUREKA_CLIENT_ENABLED
-              value: "false"
+            # Habilitar Eureka Service Discovery
+            - name: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+              value: "http://eureka-server:8761/eureka/"
             # Usar configuración externa
             - name: SPRING_CONFIG_LOCATION
               value: "file:/app/config/application.yml"
