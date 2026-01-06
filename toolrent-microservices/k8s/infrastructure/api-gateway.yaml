@@ -22,7 +22,7 @@ spec:
     spec:
       containers:
         - name: api-gateway
-          image: fergusone/api-gateway:1.0.2
+          image: fergusone/api-gateway:1.0.3
           ports:
             - containerPort: 8080
           env:
