@@ -16,7 +16,7 @@ Respecto a **M7 (Gestión de Usuarios)**, el profesor ha confirmado que **Keyclo
     *   **Frontend:** `toolrent-microservices/k8s/infrastructure/frontend-deployment.yaml` expone el frontend mediante `NodePort` en el puerto `30000`.
     *   **Backend:** `toolrent-microservices/k8s/infrastructure/api-gateway.yaml` expone el gateway mediante `NodePort` en el puerto `30080`.
     *   **Comunicación:** Los microservicios usan `ClusterIP` (por defecto al no especificar `type` en sus servicios).
-*   **Observación:** La configuración del frontend (`.env`) tiene una IP hardcodeada (`192.168.1.89`), pero el despliegue de Kubernetes inyecta variables de entorno para Keycloak. Se debe asegurar que el frontend apunte correctamente al `NodePort` del API Gateway para que funcione en cualquier entorno.
+*   **Observación:** La variable de entorno con IP hardcodeada en `.env` es **ignorada en producción**. El código fuente (`http-common.js`) define rutas relativas (`API_BASE=""`), lo que hace que el navegador realice peticiones al mismo dominio del frontend. Estas peticiones son interceptadas por **Nginx** dentro del contenedor (`nginx.conf`) y redirigidas internamente al servicio de Kubernetes `http://api-gateway:8080/api/`. **Esta es una configuración correcta, robusta y cumple totalmente con las buenas prácticas en Kubernetes.**
 
 ### Criterio 2: Correcta implementación de microservicios y comunicación (20%)
 *   **Requisito:** M1 a M7 implementados con capas, base de datos propia, `RestTemplate`, `server.port=0`.
@@ -72,15 +72,13 @@ Respecto a **M7 (Gestión de Usuarios)**, el profesor ha confirmado que **Keyclo
 
 ## 4. Conclusiones y Recomendaciones
 
-1.  **M7 (Usuarios):** La solución está **alineada con las instrucciones del profesor** al utilizar Keycloak para reemplazar el desarrollo manual de un microservicio de usuarios.
-2.  **Base de Datos M6 (Reportes):**
-    *   *Recomendación:* Se justifica que M6 es un agregador en tiempo real y por ende no requiere persistencia propia ("según corresponda").
-3.  **Configuración Frontend:**
-    *   *Recomendación:* Verificar que el `ConfigMap` del frontend en K8s apunte al API Gateway correctamente y no dependa de las IPs en el `.env` local.
+1.  **Configuración Frontend-Backend:** Se ha verificado que la integración es correcta. El frontend no depende de IPs fijas para contactar al API Gateway, sino que delega en Nginx (proxy inverso interno) para resolver el servicio `api-gateway` dentro del clúster.
+2.  **M7 (Usuarios):** La solución está **alineada con las instrucciones del profesor** al utilizar Keycloak.
+3.  **Base de Datos M6 (Reportes):** Se considera aceptable la estrategia de agregación en tiempo real.
 
 ## 5. Ubicación de Evidencias en el Repositorio
 
 *   **M1-M6:** `toolrent-microservices/ms-*`
 *   **Infraestructura:** `toolrent-microservices/k8s/infrastructure/`
 *   **Bases de Datos:** `toolrent-microservices/k8s/databases/`
-*   **Configuración Dinámica:** `toolrent-microservices/ms-loans/src/main/resources/application.yml` (server.port=0)
+*   **Proxy Inverso Frontend:** `toolrent-frontend/nginx.conf`
