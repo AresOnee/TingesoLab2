@@ -103,10 +103,6 @@ public class SecurityConfig {
                 // USER y ADMIN pueden ver reportes
                 .pathMatchers("/api/v1/reports", "/api/v1/reports/**").hasAnyRole("USER", "ADMIN")
 
-                // ============ MS-USERS (si se mantiene) ============
-                .pathMatchers("/api/v1/users", "/api/v1/users/**").hasAnyRole("USER", "ADMIN")
-                .pathMatchers("/api/v1/auth", "/api/v1/auth/**").permitAll()
-
                 // Cualquier otra peticion requiere autenticacion
                 .anyExchange().authenticated()
             )
