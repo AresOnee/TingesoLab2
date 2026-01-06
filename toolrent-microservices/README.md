@@ -102,7 +102,8 @@ kubectl get services -n toolrent
 ### Config Server (Puerto 8888)
 - Centraliza la configuración de todos los microservicios
 - Usa perfil `native` para servir configs desde `classpath:/configurations`
-- Contiene configuraciones para: ms-tools, ms-loans, ms-clients, ms-config, ms-kardex, ms-reports, ms-users
+- Contiene configuraciones para: ms-tools, ms-loans, ms-clients, ms-config, ms-kardex, ms-reports
+- NOTA: La gestión de usuarios (Épica 7) se maneja con Keycloak
 
 ### Eureka Server (Puerto 8761)
 - Service Discovery para registro automático de microservicios
@@ -125,7 +126,8 @@ kubectl get services -n toolrent
 | `/api/v1/config/**` | MS-CONFIG | Épica 4: Tarifas |
 | `/api/v1/kardex/**` | MS-KARDEX | Épica 5: Kardex |
 | `/api/v1/reports/**` | MS-REPORTS | Épica 6: Reportes |
-| `/api/v1/users/**` | MS-USERS | Épica 7: Usuarios |
+
+> **Nota:** La Épica 7 (Gestión de Usuarios y Roles) se implementa con Keycloak
 
 ## ⚠️ Notas Importantes
 

@@ -11,4 +11,4 @@ data:
   MYSQL_DATABASE_CONFIG: "config_db"
   MYSQL_DATABASE_LOANS: "loans_db"
   MYSQL_DATABASE_KARDEX: "kardex_db"
-  MYSQL_DATABASE_USERS: "users_db"
+  # NOTA: La gestión de usuarios (Épica 7) se maneja con Keycloak

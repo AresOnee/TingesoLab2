@@ -42,6 +42,7 @@ INFRA_PROJECTS=(
 )
 
 # Microservicios
+# NOTA: ms-users fue reemplazado por Keycloak para gestión de usuarios (Épica 7)
 MICROSERVICES=(
     "ms-tools"
     "ms-clients"
@@ -49,7 +50,6 @@ MICROSERVICES=(
     "ms-kardex"
     "ms-loans"
     "ms-reports"
-    "ms-users"
 )
 
 # Compilar infraestructura

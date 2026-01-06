@@ -75,18 +75,13 @@ docker push %DOCKER_USER%/ms-loans:1.0.0
 cd ..
 
 echo.
-echo [9/10] Construyendo ms-reports...
+echo [9/9] Construyendo ms-reports...
 cd ms-reports
 docker build -t %DOCKER_USER%/ms-reports:1.0.0 .
 docker push %DOCKER_USER%/ms-reports:1.0.0
 cd ..
 
-echo.
-echo [10/10] Construyendo ms-users...
-cd ms-users
-docker build -t %DOCKER_USER%/ms-users:1.0.0 .
-docker push %DOCKER_USER%/ms-users:1.0.0
-cd ..
+REM NOTA: ms-users fue reemplazado por Keycloak para gestion de usuarios (Epica 7)
 
 echo.
 echo ============================================
@@ -103,7 +98,6 @@ echo   - %DOCKER_USER%/ms-config:1.0.0
 echo   - %DOCKER_USER%/ms-kardex:1.0.0
 echo   - %DOCKER_USER%/ms-loans:1.0.0
 echo   - %DOCKER_USER%/ms-reports:1.0.0
-echo   - %DOCKER_USER%/ms-users:1.0.0
 echo.
 echo Siguiente paso: Actualiza los archivos YAML en k8s/ con tu usuario
 echo y luego ejecuta deploy-k8s.bat
