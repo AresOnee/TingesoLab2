@@ -54,6 +54,7 @@ export default function Loans() {
 
   const [returnModalOpen, setReturnModalOpen] = useState(false);
   const [selectedLoan, setSelectedLoan] = useState(null);
+  const [selectedToolReplacementValue, setSelectedToolReplacementValue] = useState(0);
 
   const clientsMap = useMemo(() => {
     const m = new Map();
@@ -308,13 +309,23 @@ export default function Loans() {
 
   function handleOpenReturnModal(loan) {
     const toolId = loan.toolId || loan.tool_id || loan.tool?.id;
-    const tool = toolsMap.get(Number(toolId));
+
+    // Buscar herramienta en el array tools directamente (más confiable que Map)
+    const tool = tools.find(t => t.id === toolId || t.id === Number(toolId) || String(t.id) === String(toolId));
+
+    // Soportar tanto camelCase como snake_case
+    const replacementValue = tool?.replacementValue || tool?.replacement_value || 0;
+
     console.log('Opening return modal:', {
       loanId: loan.id,
       toolId,
+      toolIdType: typeof toolId,
       tool,
-      replacementValue: tool?.replacementValue
+      replacementValue,
+      toolsCount: tools.length
     });
+
+    setSelectedToolReplacementValue(replacementValue);
     setSelectedLoan(loan);
     setReturnModalOpen(true);
   }
@@ -661,11 +672,7 @@ export default function Loans() {
         onConfirm={handleReturnLoan}
         clientName={selectedLoan ? clientNameOnly(selectedLoan) : ""}
         toolName={selectedLoan ? toolNameOnly(selectedLoan) : ""}
-        toolReplacementValue={
-          selectedLoan
-            ? toolsMap.get(Number(selectedLoan.toolId || selectedLoan.tool_id || selectedLoan.tool?.id))?.replacementValue || 0
-            : 0
-        }
+        toolReplacementValue={selectedToolReplacementValue}
       />
     </Box>
   );
