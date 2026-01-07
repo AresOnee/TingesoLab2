@@ -345,9 +345,10 @@ public class LoanService {
 
     private void updateClientStateIfNeeded(Long clientId) {
         try {
-            // Verificar si el cliente tiene préstamos atrasados
-            boolean hasOverdues = loanRepository.hasOverduesOrFines(clientId);
-            String newState = hasOverdues ? "Restringido" : "Activo";
+            // RF3.2: Verificar si el cliente tiene préstamos ACTIVOS atrasados
+            // Solo los atrasos deben restringir, NO las multas por daño
+            boolean hasActiveOverdues = loanRepository.hasActiveOverdueLoans(clientId);
+            String newState = hasActiveOverdues ? "Restringido" : "Activo";
 
             String url = MS_CLIENTS_URL + "/api/v1/clients/" + clientId + "/state";
             Map<String, String> body = new HashMap<>();

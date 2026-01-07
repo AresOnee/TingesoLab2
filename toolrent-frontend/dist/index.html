@@ -5,7 +5,32 @@
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>ToolRent</title>
-    <script type="module" crossorigin src="/assets/index-CqD4nlQv.js"></script>
+    <!-- Polyfill para crypto en contextos no seguros (HTTP con IP) -->
+    <script>
+      // Polyfill para crypto.randomUUID si no está disponible
+      if (typeof crypto !== 'undefined' && !crypto.randomUUID) {
+        crypto.randomUUID = function() {
+          return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+            var r = Math.random() * 16 | 0;
+            var v = c === 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+          });
+        };
+      }
+      // Polyfill para crypto.getRandomValues si no está disponible
+      if (typeof crypto === 'undefined' || !crypto.getRandomValues) {
+        window.crypto = window.crypto || {};
+        window.crypto.getRandomValues = function(array) {
+          for (var i = 0; i < array.length; i++) {
+            array[i] = Math.floor(Math.random() * 256);
+          }
+          return array;
+        };
+      }
+    </script>
+    <!-- Runtime environment config (for K8s) - must load before app -->
+    <script src="/env.js"></script>
+    <script type="module" crossorigin src="/assets/index-BerpixFp.js"></script>
   </head>
   <body>
     <div id="root"></div>

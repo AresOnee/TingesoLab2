@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: ms-loans
-          image: fergusone/ms-loans:1.0.1
+          image: fergusone/ms-loans:1.0.2
           imagePullPolicy: Always
           ports:
             - containerPort: 8081

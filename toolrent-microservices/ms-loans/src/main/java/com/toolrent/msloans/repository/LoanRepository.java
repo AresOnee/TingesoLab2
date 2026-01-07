@@ -31,10 +31,12 @@ public interface LoanRepository extends JpaRepository<LoanEntity, Long> {
     boolean existsActiveByClientAndTool(@Param("clientId") Long clientId, @Param("toolId") Long toolId);
 
     /**
-     * Verifica si un cliente tiene préstamos vencidos o multas
+     * RF3.2: Verifica si un cliente tiene préstamos ACTIVOS atrasados
+     * IMPORTANTE: Solo considera préstamos NO devueltos que están atrasados
+     * Las multas por daño NO deben restringir al cliente (solo los atrasos)
      */
-    @Query("SELECT (COUNT(l) > 0) FROM LoanEntity l WHERE l.clientId = :clientId AND (l.status = 'ATRASADO' OR l.fine > 0)")
-    boolean hasOverduesOrFines(@Param("clientId") Long clientId);
+    @Query("SELECT (COUNT(l) > 0) FROM LoanEntity l WHERE l.clientId = :clientId AND l.returnDate IS NULL AND l.dueDate < CURRENT_DATE")
+    boolean hasActiveOverdueLoans(@Param("clientId") Long clientId);
 
     /**
      * Obtener préstamos activos (sin devolver)
