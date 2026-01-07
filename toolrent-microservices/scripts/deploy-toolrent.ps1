@@ -402,11 +402,11 @@ if (-not $SkipWait) {
         Write-Info "Los microservicios pueden fallar al iniciar sin Config Server"
     }
 
-    # 2. Esperar a Eureka Server
-    Write-Info "Esperando a Eureka Server (puede tomar 2-3 minutos)..."
+    # 2. Esperar a Eureka Server (max 90 segundos)
+    Write-Info "Esperando a Eureka Server (max 90s)..."
     $ready = $false
     $attempts = 0
-    while (-not $ready -and $attempts -lt 30) {
+    while (-not $ready -and $attempts -lt 18) {
         $status = kubectl get pods -n $NAMESPACE -l app=eureka-server -o jsonpath='{.items[0].status.conditions[?(@.type=="Ready")].status}' 2>$null
         if ($status -eq "True") {
             $ready = $true
@@ -414,16 +414,19 @@ if (-not $SkipWait) {
         } else {
             $attempts++
             Write-Host "." -NoNewline
-            Start-Sleep -Seconds 10
+            Start-Sleep -Seconds 5
         }
     }
     Write-Host ""
+    if (-not $ready) {
+        Write-Info "Eureka aun iniciando, continuando..."
+    }
 
-    # 3. Esperar a Keycloak
-    Write-Info "Esperando a Keycloak..."
+    # 3. Verificar Keycloak (normalmente ya está corriendo de antes)
+    Write-Info "Verificando Keycloak (ya deberia estar corriendo)..."
     $ready = $false
     $attempts = 0
-    while (-not $ready -and $attempts -lt 30) {
+    while (-not $ready -and $attempts -lt 6) {
         $status = kubectl get pods -n $NAMESPACE -l app=keycloak -o jsonpath='{.items[0].status.conditions[?(@.type=="Ready")].status}' 2>$null
         if ($status -eq "True") {
             $ready = $true
@@ -431,10 +434,13 @@ if (-not $SkipWait) {
         } else {
             $attempts++
             Write-Host "." -NoNewline
-            Start-Sleep -Seconds 10
+            Start-Sleep -Seconds 5
         }
     }
     Write-Host ""
+    if (-not $ready) {
+        Write-Info "Keycloak aun iniciando, continuando de todos modos..."
+    }
 }
 
 Write-Success "Infraestructura desplegada"
@@ -452,24 +458,31 @@ if (Test-Path $microservicesPath) {
     }
 }
 
-# Esperar a que los microservicios esten listos
+# Esperar a que los microservicios esten listos (max ~3 minutos total)
 if (-not $SkipWait) {
-    Write-Info "Esperando a que los microservicios esten listos..."
-    Start-Sleep -Seconds 30
+    Write-Info "Esperando a que los microservicios esten listos (max 3 min)..."
+    Start-Sleep -Seconds 15
 
     $microservices = @("ms-clients", "ms-tools", "ms-loans", "ms-kardex", "ms-config", "ms-reports")
     foreach ($ms in $microservices) {
         $attempts = 0
-        while ($attempts -lt 12) {
+        $ready = $false
+        while (-not $ready -and $attempts -lt 6) {
             $status = kubectl get pods -n $NAMESPACE -l app=$ms -o jsonpath='{.items[0].status.conditions[?(@.type=="Ready")].status}' 2>$null
             if ($status -eq "True") {
+                $ready = $true
                 Write-Success "$ms esta listo"
-                break
+            } else {
+                $attempts++
+                Write-Host "." -NoNewline
+                Start-Sleep -Seconds 5
             }
-            $attempts++
-            Start-Sleep -Seconds 10
+        }
+        if (-not $ready) {
+            Write-Info "$ms aun iniciando..."
         }
     }
+    Write-Host ""
 }
 
 Write-Success "Microservicios desplegados"
