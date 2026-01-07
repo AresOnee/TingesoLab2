@@ -1,5 +1,6 @@
 // src/components/Loans.jsx
 import React, { useEffect, useMemo, useState } from "react";
+import { useKeycloak } from '@react-keycloak/web';
 import {
   Box,
   Typography,
@@ -34,7 +35,16 @@ import ReturnLoanModal from "./ReturnLoanModal";
 import { useSnackbar } from "../contexts/SnackbarContext";
 
 export default function Loans() {
+  const { keycloak } = useKeycloak();
   const { showSuccess, showError } = useSnackbar();
+
+  // Obtener username de Keycloak
+  const username = useMemo(() =>
+    keycloak?.tokenParsed?.preferred_username ||
+    keycloak?.tokenParsed?.name ||
+    'system',
+    [keycloak?.tokenParsed]
+  );
 
   const [clients, setClients] = useState([]);
   const [tools, setTools] = useState([]);
@@ -280,9 +290,10 @@ export default function Loans() {
           clientId: form.clientId,
           toolId: form.toolId,
           dueDate: form.dueDate,
+          username: username,
         },
       });
-      
+
       showSuccess("Préstamo creado correctamente");
       setForm({ clientId: "", toolId: "", dueDate: "" });
       await fetchAll();
@@ -308,9 +319,9 @@ export default function Loans() {
   async function handleReturnLoan(loanId, isDamaged, isIrreparable) {
     try {
       await http.post("/api/v1/loans/return", null, {
-        params: { loanId, isDamaged, isIrreparable },
+        params: { loanId, isDamaged, isIrreparable, username },
       });
-      
+
       showSuccess("Herramienta devuelta exitosamente");
       handleCloseReturnModal();
       await fetchAll();
