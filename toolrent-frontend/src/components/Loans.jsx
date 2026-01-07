@@ -86,21 +86,19 @@ export default function Loans() {
   };
 
   const stats = useMemo(() => {
-    // DEBUG: Ver qué datos llegan realmente
-    console.log('=== DEBUG LOANS ===');
-    console.log('Total loans:', loans.length);
-    console.log('Sample loan:', loans[0]);
-    console.log('All statuses:', loans.map(l => l.status));
-    console.log('Loans with ATRASADO:', loans.filter(l => l.status === "ATRASADO"));
-
     // Contar exactamente igual que como se muestra en la tabla
     const active = loans.filter(l => !(l.returnDate || l.return_date)).length;
     const overdue = loans.filter(l => l.status === "ATRASADO").length;
     const returned = loans.filter(l => l.returnDate || l.return_date).length;
     const totalFines = loans.reduce((sum, l) => sum + (l.fine || 0), 0);
 
-    console.log('Stats:', { active, overdue, returned, totalFines });
     return { active, overdue, returned, totalFines };
+  }, [loans]);
+
+  // DEBUG: Mostrar valores de status en la página
+  const debugStatuses = useMemo(() => {
+    if (loans.length === 0) return "Sin datos";
+    return loans.slice(0, 5).map(l => `ID${l.id}:${l.status}`).join(", ");
   }, [loans]);
 
   const clientLabel = (loan) => {
@@ -404,6 +402,13 @@ export default function Loans() {
         >
           {loading ? "Actualizando..." : "Actualizar"}
         </Button>
+      </Box>
+
+      {/* DEBUG: Mostrar valores reales de status */}
+      <Box sx={{ mb: 2, p: 2, backgroundColor: '#fef3c7', border: '2px solid #f59e0b', borderRadius: 1 }}>
+        <Typography variant="body2" sx={{ fontWeight: 'bold', color: '#92400e' }}>
+          DEBUG - Status de los primeros 5 loans: {debugStatuses}
+        </Typography>
       </Box>
 
       {/* Estadísticas */}
