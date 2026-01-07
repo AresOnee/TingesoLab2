@@ -86,12 +86,20 @@ export default function Loans() {
   };
 
   const stats = useMemo(() => {
+    // DEBUG: Ver qué datos llegan realmente
+    console.log('=== DEBUG LOANS ===');
+    console.log('Total loans:', loans.length);
+    console.log('Sample loan:', loans[0]);
+    console.log('All statuses:', loans.map(l => l.status));
+    console.log('Loans with ATRASADO:', loans.filter(l => l.status === "ATRASADO"));
+
     // Contar exactamente igual que como se muestra en la tabla
     const active = loans.filter(l => !(l.returnDate || l.return_date)).length;
     const overdue = loans.filter(l => l.status === "ATRASADO").length;
     const returned = loans.filter(l => l.returnDate || l.return_date).length;
     const totalFines = loans.reduce((sum, l) => sum + (l.fine || 0), 0);
 
+    console.log('Stats:', { active, overdue, returned, totalFines });
     return { active, overdue, returned, totalFines };
   }, [loans]);
 
