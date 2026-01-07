@@ -95,12 +95,6 @@ export default function Loans() {
     return { active, overdue, returned, totalFines };
   }, [loans]);
 
-  // DEBUG: Mostrar valores de status en la página
-  const debugStatuses = useMemo(() => {
-    if (loans.length === 0) return "Sin datos";
-    return loans.slice(0, 5).map(l => `ID${l.id}:${l.status}`).join(", ");
-  }, [loans]);
-
   const clientLabel = (loan) => {
     if (loan.client && typeof loan.client === 'object' && loan.client.name) {
       return `${loan.client.id} - ${loan.client.name}`;
@@ -402,13 +396,6 @@ export default function Loans() {
         >
           {loading ? "Actualizando..." : "Actualizar"}
         </Button>
-      </Box>
-
-      {/* DEBUG: Mostrar valores reales de status */}
-      <Box sx={{ mb: 2, p: 2, backgroundColor: '#fef3c7', border: '2px solid #f59e0b', borderRadius: 1 }}>
-        <Typography variant="body2" sx={{ fontWeight: 'bold', color: '#92400e' }}>
-          DEBUG - Status de los primeros 5 loans: {debugStatuses}
-        </Typography>
       </Box>
 
       {/* Estadísticas */}
