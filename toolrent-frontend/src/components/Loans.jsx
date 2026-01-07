@@ -309,11 +309,13 @@ export default function Loans() {
   function handleOpenReturnModal(loan) {
     const toolId = loan.toolId || loan.tool_id || loan.tool?.id;
     const tool = toolsMap.get(Number(toolId));
+    // Soportar tanto camelCase como snake_case
+    const replacementValue = tool?.replacementValue || tool?.replacement_value || 0;
     console.log('Opening return modal:', {
       loanId: loan.id,
       toolId,
       tool,
-      replacementValue: tool?.replacementValue
+      replacementValue
     });
     setSelectedLoan(loan);
     setReturnModalOpen(true);
@@ -663,7 +665,10 @@ export default function Loans() {
         toolName={selectedLoan ? toolNameOnly(selectedLoan) : ""}
         toolReplacementValue={
           selectedLoan
-            ? toolsMap.get(Number(selectedLoan.toolId || selectedLoan.tool_id || selectedLoan.tool?.id))?.replacementValue || 0
+            ? (() => {
+                const tool = toolsMap.get(Number(selectedLoan.toolId || selectedLoan.tool_id || selectedLoan.tool?.id));
+                return tool?.replacementValue || tool?.replacement_value || 0;
+              })()
             : 0
         }
       />
