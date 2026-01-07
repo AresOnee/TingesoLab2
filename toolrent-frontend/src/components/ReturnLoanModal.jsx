@@ -48,25 +48,25 @@ export default function ReturnLoanModal({
   // Cargar configuraciones al abrir el modal
   useEffect(() => {
     if (open && loan) {
-      loadConfigurations()
+      loadConfigurations(toolReplacementValue)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, loan, toolReplacementValue])
 
-  const loadConfigurations = async () => {
+  const loadConfigurations = async (replacementValue) => {
     try {
       setLoadingConfig(true)
       const [multa, reparacion] = await Promise.all([
         configService.getTarifaMulta(),
         configService.getCargoReparacion(),
       ])
-      
+
       setTarifaMulta(multa || 0)
       setCargoReparacion(reparacion || 0)
 
-      // Usar el valor de reposición pasado como prop desde Loans.jsx
-      // (En microservicios, loan.tool es undefined, por eso se pasa como prop)
-      setValorReposicion(toolReplacementValue || 0)
+      // Usar el valor de reposición pasado como parámetro
+      setValorReposicion(replacementValue || 0)
+      console.log('Valor de reposición cargado:', replacementValue)
       
     } catch (error) {
       console.error('Error al cargar configuraciones:', error)

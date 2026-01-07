@@ -307,6 +307,14 @@ export default function Loans() {
   }
 
   function handleOpenReturnModal(loan) {
+    const toolId = loan.toolId || loan.tool_id || loan.tool?.id;
+    const tool = toolsMap.get(Number(toolId));
+    console.log('Opening return modal:', {
+      loanId: loan.id,
+      toolId,
+      tool,
+      replacementValue: tool?.replacementValue
+    });
     setSelectedLoan(loan);
     setReturnModalOpen(true);
   }
