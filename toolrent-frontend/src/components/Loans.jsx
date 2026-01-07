@@ -87,7 +87,8 @@ export default function Loans() {
 
   const stats = useMemo(() => {
     const active = loans.filter(l => !l.returnDate).length;
-    const overdue = loans.filter(l => l.status === "Atrasado" && !l.returnDate).length;
+    // Comparar case-insensitive porque el backend devuelve "ATRASADO" en mayúsculas
+    const overdue = loans.filter(l => l.status?.toUpperCase() === "ATRASADO" && !l.returnDate).length;
     const returned = loans.filter(l => l.returnDate).length;
     const totalFines = loans.reduce((sum, l) => sum + (l.fine || 0), 0);
 
