@@ -86,22 +86,10 @@ export default function Loans() {
   };
 
   const stats = useMemo(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const active = loans.filter(l => !l.returnDate).length;
-
-    // Calcular atrasados basándose en la fecha de vencimiento directamente
-    const overdue = loans.filter(l => {
-      if (l.returnDate) return false; // Solo préstamos activos
-      const dueDateStr = l.dueDate || l.due_date;
-      if (!dueDateStr) return false;
-      const dueDate = new Date(dueDateStr);
-      dueDate.setHours(0, 0, 0, 0);
-      return dueDate < today;
-    }).length;
-
-    const returned = loans.filter(l => l.returnDate).length;
+    // Contar exactamente igual que como se muestra en la tabla
+    const active = loans.filter(l => !(l.returnDate || l.return_date)).length;
+    const overdue = loans.filter(l => l.status === "ATRASADO").length;
+    const returned = loans.filter(l => l.returnDate || l.return_date).length;
     const totalFines = loans.reduce((sum, l) => sum + (l.fine || 0), 0);
 
     return { active, overdue, returned, totalFines };
