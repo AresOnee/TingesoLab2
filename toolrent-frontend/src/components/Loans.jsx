@@ -653,6 +653,11 @@ export default function Loans() {
         onConfirm={handleReturnLoan}
         clientName={selectedLoan ? clientNameOnly(selectedLoan) : ""}
         toolName={selectedLoan ? toolNameOnly(selectedLoan) : ""}
+        toolReplacementValue={
+          selectedLoan
+            ? toolsMap.get(Number(selectedLoan.toolId || selectedLoan.tool_id || selectedLoan.tool?.id))?.replacementValue || 0
+            : 0
+        }
       />
     </Box>
   );

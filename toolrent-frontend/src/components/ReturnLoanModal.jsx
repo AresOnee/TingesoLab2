@@ -34,6 +34,7 @@ export default function ReturnLoanModal({
   onConfirm,
   clientName,
   toolName,
+  toolReplacementValue = 0, // Valor de reposición de la herramienta
 }) {
   const [damageType, setDamageType] = useState('sin_danos')
   const [loading, setLoading] = useState(false)
@@ -49,7 +50,8 @@ export default function ReturnLoanModal({
     if (open && loan) {
       loadConfigurations()
     }
-  }, [open, loan])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, loan, toolReplacementValue])
 
   const loadConfigurations = async () => {
     try {
@@ -61,10 +63,10 @@ export default function ReturnLoanModal({
       
       setTarifaMulta(multa || 0)
       setCargoReparacion(reparacion || 0)
-      
-      // Obtener valor de reposición de la herramienta desde el préstamo
-      const reposicion = loan?.tool?.replacementValue || 0
-      setValorReposicion(reposicion)
+
+      // Usar el valor de reposición pasado como prop desde Loans.jsx
+      // (En microservicios, loan.tool es undefined, por eso se pasa como prop)
+      setValorReposicion(toolReplacementValue || 0)
       
     } catch (error) {
       console.error('Error al cargar configuraciones:', error)
