@@ -310,8 +310,8 @@ export default function Loans() {
   function handleOpenReturnModal(loan) {
     const toolId = loan.toolId || loan.tool_id || loan.tool?.id;
 
-    // Buscar herramienta en el array tools directamente (más confiable que Map)
-    const tool = tools.find(t => t.id === toolId || t.id === Number(toolId) || String(t.id) === String(toolId));
+    // Usar toolsMap.get() igual que toolNameOnly (que sí funciona)
+    const tool = toolsMap.get(Number(toolId));
 
     // Soportar tanto camelCase como snake_case
     const replacementValue = tool?.replacementValue || tool?.replacement_value || 0;
@@ -322,7 +322,7 @@ export default function Loans() {
       toolIdType: typeof toolId,
       tool,
       replacementValue,
-      toolsCount: tools.length
+      toolsMapSize: toolsMap.size
     });
 
     setSelectedToolReplacementValue(replacementValue);
