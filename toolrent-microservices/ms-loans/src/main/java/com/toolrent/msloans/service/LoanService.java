@@ -39,9 +39,29 @@ public class LoanService {
 
     /**
      * Obtener todos los préstamos
+     * Calcula dinámicamente el status ATRASADO para préstamos activos vencidos
      */
     public List<LoanEntity> getAllLoans() {
-        return loanRepository.findAll();
+        List<LoanEntity> loans = loanRepository.findAll();
+
+        // Calcular status y multas dinámicamente para préstamos activos
+        LocalDate today = LocalDate.now();
+        Double tarifaMulta = getTarifaMulta();
+
+        for (LoanEntity loan : loans) {
+            // Solo procesar préstamos activos (sin fecha de devolución)
+            if (loan.getReturnDate() == null) {
+                if (today.isAfter(loan.getDueDate())) {
+                    long diasAtraso = ChronoUnit.DAYS.between(loan.getDueDate(), today);
+                    loan.setFine(diasAtraso * tarifaMulta);
+                    loan.setStatus("ATRASADO");
+                } else {
+                    loan.setStatus("ACTIVO");
+                }
+            }
+        }
+
+        return loans;
     }
 
     /**
